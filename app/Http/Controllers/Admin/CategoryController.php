@@ -22,7 +22,7 @@ class CategoryController extends Controller
     {
         $validated = $request->validate([
             'strCategoryName' => 'required|string|max:50|unique:category,strCategoryName',
-            'strSlug' => 'required|string|max:50|unique:category,strSlug',
+            // 'strSlug' => 'required|string|max:50|unique:category,strSlug',
         ]);
  
         $validated['iStatus'] = 1;
@@ -47,7 +47,7 @@ class CategoryController extends Controller
  
         $validated = $request->validate([
             'strCategoryName' => 'required|string|max:50|unique:category,strCategoryName,' . $id . ',iCategoryId',
-            'strSlug' => 'required|string|max:50|unique:category,strSlug,' . $id . ',iCategoryId',
+            // 'strSlug' => 'required|string|max:50|unique:category,strSlug,' . $id . ',iCategoryId',
         ]);
  
         $validated['strIP'] = $request->ip();
@@ -62,7 +62,7 @@ class CategoryController extends Controller
     {
        
         $category = Category::findOrFail($id);
-        $category->update(['isDelete' => 1]);
+        $category->delete();
 
         return redirect()->route('admin.category.index')
             ->with('success', 'Category deleted successfully!');
@@ -85,7 +85,7 @@ class CategoryController extends Controller
      
         if (!empty($ids)) {
             Category::whereIn('iCategoryId', $ids)
-                ->update(['isDelete' => 1]);
+                ->delete();
  
             return redirect()->route('admin.category.index')
                 ->with('success', 'Selected categories deleted successfully!');

@@ -40,8 +40,38 @@ $roleid = Auth::guard('web_employees')->user()->role_id;
                             <span data-key="t-sub-category">Sub Category</span>
                         </a>
                     </li>
-                 
-                    
+                     <li class="nav-item">
+                      <a class="nav-link" href="{{ route('admin.video.index') }}">
+                        <i class="fas fa-video"></i>
+                        <span>Video Master</span>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                          <a class="nav-link" href="{{ route('admin.podcast.index') }}">
+                            <i class="fas fa-podcast"></i>
+                            <span>Podcast Episodes</span>
+                          </a>
+                    </li>
+                     <li class="nav-item">
+                      <a class="nav-link" href="{{ route('admin.gallery.index') }}">
+                        <i class="fas fa-images"></i> <span>Gallery</span>
+                      </a>
+                    </li>
+
+                    <li class="nav-item">
+                      <a class="nav-link" href="{{ route('admin.document.index') }}">
+                        <i class="fas fa-file-alt me-2"></i>Documents
+                      </a>
+                    </li>
+                     <li class="nav-item">
+                                <a class="nav-link menu-link @if (request()->routeIs('Inquiry.index')) {{ 'active' }} @endif"
+                                    href="{{ route('Inquiry.index') }}">
+                                    <i class="fa-solid fa-circle-question"></i>
+                                    <span data-key="t-dashboards">Inquiry</span>
+                                </a>
+                            </li>
+                            
+
                 @endif
             </ul>
         </div>

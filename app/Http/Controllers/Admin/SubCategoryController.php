@@ -27,7 +27,7 @@ class SubCategoryController extends Controller
     {
         $validated = $request->validate([
             'strSubCategoryName' => 'required|string|max:50',
-            'strSlug' => 'required|string|max:50',
+            // 'strSlug' => 'required|string|max:50',
             'iCategoryId' => 'required|exists:category,iCategoryId',
         ]);
  
@@ -55,7 +55,7 @@ class SubCategoryController extends Controller
  
         $validated = $request->validate([
             'strSubCategoryName' => 'required|string|max:50',
-            'strSlug' => 'required|string|max:50',
+            // 'strSlug' => 'required|string|max:50',
             'iCategoryId' => 'required|exists:category,iCategoryId',
         ]);
  

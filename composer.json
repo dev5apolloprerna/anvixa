@@ -37,7 +37,11 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+            "files": [
+              "app/Helpers/anvixa_paths.php",
+              "app/Helpers/anvixa_uploads.php"
+            ]
     },
     "autoload-dev": {
         "psr-4": {

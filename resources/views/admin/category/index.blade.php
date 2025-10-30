@@ -27,12 +27,12 @@
                                     <input type="text" class="form-control" id="strCategoryName" name="strCategoryName" maxlength="50" required>
                                 </div>
  
-                                <div class="mb-3">
+                                <!-- <div class="mb-3">
                                     <label for="strSlug" class="form-label">Slug <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="strSlug" name="strSlug" maxlength="50" required>
-                                </div>
+                                </div> -->
  
-                                <div class="d-flex justify-content-between">
+                                <div class="d-flex ">
                                     <button type="submit" class="btn btn-primary">Submit</button>
                                     <button type="reset" class="btn btn-light">Clear</button>
                                 </div>
@@ -128,15 +128,15 @@
                         <input type="text" class="form-control" id="editStrCategoryName" name="strCategoryName" maxlength="50" required>
                     </div>
  
-                    <div class="mb-3">
+                    <!-- <div class="mb-3">
                         <label for="editStrSlug" class="form-label">Slug <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="editStrSlug" name="strSlug" maxlength="50" required>
-                    </div>
+                    </div> -->
  
                 </div>
-                <div class="modal-footer d-flex justify-content-between">
+                <div class="modal-footer d-flex">
                     <button type="submit" class="btn btn-primary">Update</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </form>
@@ -204,6 +204,45 @@
     $('#selectAll').on('click', function() {
         $('input[name="ids[]"]').prop('checked', this.checked);
     });
+
+    (function () {
+  function toSlug(s) {
+    return (s || '')
+      .toString()
+      .normalize('NFKD')                   // handle accents
+      .replace(/[\u0300-\u036f]/g, '')    // strip diacritics
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')        // non-alnum -> hyphen
+      .replace(/^-+|-+$/g, '')            // trim dashes
+      .substring(0, 50);                  // keep within your maxlength
+  }
+
+  const nameEl = document.getElementById('strCategoryName');
+  const slugEl = document.getElementById('strSlug');
+  const editNameEl = document.getElementById('editStrCategoryName');
+  const editSlugEl = document.getElementById('editStrSlug');
+
+  let userEditedCreateSlug = false;
+  let userEditedEditSlug = false;
+
+  // If user types in slug manually, stop auto-sync for that form
+  slugEl?.addEventListener('input', () => userEditedCreateSlug = true);
+  editSlugEl?.addEventListener('input', () => userEditedEditSlug = true);
+
+  // Create form: name -> slug (only if user hasn't touched slug)
+  nameEl?.addEventListener('input', function () {
+    if (!userEditedCreateSlug) slugEl.value = toSlug(this.value);
+  });
+
+  // Edit modal: name -> slug (only if user hasn't touched slug)
+  editNameEl?.addEventListener('input', function () {
+    if (!userEditedEditSlug) editSlugEl.value = toSlug(this.value);
+  });
+
+  // If the form loads with empty slug, prime it from name once
+  if (nameEl && slugEl && !slugEl.value) slugEl.value = toSlug(nameEl.value);
+})();
+
 </script>
 @endsection
  
