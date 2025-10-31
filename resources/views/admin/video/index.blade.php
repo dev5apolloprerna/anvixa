@@ -98,15 +98,13 @@
             </div>
             <div class="card-body">
               <div class="d-flex justify-content-end mb-2">
-                <button type="button" id="bulkDeleteBtn" class="btn btn-danger btn-sm">
-                  <i class="fas fa-trash"></i> Delete All
-                </button>
-              </div>
+                  <button type="button" id="bulkDeleteBtn" class="btn btn-danger btn-sm">
+                    <i class="fas fa-trash"></i> Delete All
+                  </button>
+                </div>
 
-              <form method="POST" id="bulkDeleteForm" action="{{ route('admin.video.bulk-delete') }}">
-                @csrf
                 <div class="table-responsive">
-                  <table class="table table-bordered table-striped table-hover align-middle">
+                  <table class="table table-bordered table-striped table-hover align-middle" id="videoTable">
                     <thead>
                       <tr>
                         <th style="width:32px">
@@ -117,35 +115,25 @@
                         <th>Category</th>
                         <th>Sub Category</th>
                         <th>Link</th>
-                        <!-- <th>Status</th> -->
                         <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
                       @forelse($list as $row)
-                        <tr>
-                          <td><input type="checkbox" name="ids[]" value="{{ $row->video_id }}"></td>
+                        <tr data-row-id="{{ $row->video_id }}">
+                          <td>
+                            <input type="checkbox" class="row-check" name="ids[]" value="{{ $row->video_id }}">
+                          </td>
                           <td>
                             @if($row->image)
-                              <img src="{{ asset('storage/'.$row->image) }}" alt="" style="width:56px;height:40px;object-fit:cover;border-radius:4px">
-                            @else
-                              —
-                            @endif
+                              <img src="{{ asset('anvixa/'.$row->image) }}" style="width:70px;height:50px;object-fit:cover;border-radius:4px;">
+                            @else — @endif
                           </td>
                           <td>{{ $row->video_title }}</td>
                           <td>{{ $row->category->strCategoryName ?? '-' }}</td>
                           <td>{{ $row->subcategory->strSubCategoryName ?? '-' }}</td>
+                          <td><a href="{{ $row->video_link }}" target="_blank">Open</a></td>
                           <td>
-                            <a href="{{ $row->video_link }}" target="_blank">Open</a>
-                          </td>
-                         <!--  <td>
-                            @if((int)$row->iStatus===1)
-                              <span class="badge bg-success">Active</span>
-                            @else
-                              <span class="badge bg-secondary">Inactive</span>
-                            @endif
-                          </td> -->
-                          <td >
                             <button type="button" class="btn btn-sm btn-warning edit-btn"
                                     data-id="{{ $row->video_id }}"
                                     data-category="{{ $row->category_id }}"
@@ -157,29 +145,23 @@
                               <i class="fas fa-edit"></i>
                             </button>
 
-                            <form method="POST" action="{{ route('admin.video.destroy', $row->video_id) }}" class="d-inline">
+                            {{-- Single delete stays as form; server will delete image too --}}
+                            <form method="POST" action="{{ route('admin.video.destroy', $row->video_id) }}" class="d-inline single-delete-form">
                               @csrf @method('DELETE')
                               <button type="submit" class="btn btn-sm btn-danger"
                                       onclick="return confirm('Delete this record?')">
                                 <i class="fas fa-trash"></i>
                               </button>
                             </form>
-
-                            <!-- <form method="POST" action="{{ route('admin.video.toggle-status', $row->video_id) }}" class="d-inline">
-                              @csrf @method('PATCH')
-                              <button class="btn btn-sm btn-outline-dark">
-                                {{ (int)$row->iStatus===1 ? 'Deactivate' : 'Activate' }}
-                              </button>
-                            </form> -->
                           </td>
                         </tr>
                       @empty
-                        <tr><td colspan="8">No records found.</td></tr>
+                        <tr><td colspan="7">No records found.</td></tr>
                       @endforelse
                     </tbody>
                   </table>
                 </div>
-              </form>
+
 
               {{ $list->withQueryString()->links() }}
             </div>
@@ -265,58 +247,107 @@
 @section('scripts')
 @include('common.footerjs')
 <script>
-  // Edit button -> fill modal
+  function csrfToken() {
+    const el = document.querySelector('meta[name="csrf-token"]');
+    return el ? el.getAttribute('content') : '';
+  }
+
+  function getSelectedIds() {
+    return Array.from(document.querySelectorAll('input.row-check:checked'))
+      .map(el => el.value);
+  }
+
+  function removeRowsByIds(ids) {
+    ids.forEach(id => {
+      const tr = document.querySelector(`tr[data-row-id="${id}"]`);
+      if (tr) tr.remove();
+    });
+    // also reset selectAll state
+    const total = document.querySelectorAll('input.row-check').length;
+    const sel   = document.querySelectorAll('input.row-check:checked').length;
+    const sa = document.getElementById('selectAll');
+    if (sa) sa.checked = (total > 0 && sel === total);
+  }
+
+  // === Edit modal fill (unchanged) ===
   $('.edit-btn').on('click', function () {
-    const id     = $(this).data('id');
-    const cat    = $(this).data('category');
-    const sub    = $(this).data('subcategory');
-    const title  = $(this).data('title');
-    const link   = $(this).data('link');
-    const status = parseInt($(this).data('status'), 10) === 1;
+    const id    = $(this).data('id');
+    const cat   = $(this).data('category');
+    const sub   = $(this).data('subcategory');
+    const title = $(this).data('title');
+    const link  = $(this).data('link');
 
     $('#editVideoId').val(id);
     $('#editCategoryId').val(cat);
     $('#editSubcategoryId').val(sub);
     $('#editTitle').val(title);
     $('#editLink').val(link);
-    $('#editStatusSwitch').prop('checked', status);
-    $('#editStatus').val(status ? 1 : 0);
 
     $('#editVideoForm').attr('action', '{{ url('admin/video') }}/' + id);
     $('#editVideoModal').modal('show');
   });
 
-  $('#editStatusSwitch').on('change', function () {
-    $('#editStatus').val(this.checked ? 1 : 0);
-  });
+  // === Bulk delete via AJAX ===
+  document.getElementById('bulkDeleteBtn').addEventListener('click', async function() {
+    const ids = getSelectedIds();
+    if (ids.length === 0) {
+      alert('Please select at least one video.');
+      return;
+    }
+    if (!confirm('Delete selected videos?')) return;
 
-  // Bulk delete
-  $('#bulkDeleteBtn').on('click', function(){
-    if(confirm('Delete selected videos?')) {
-      $('#bulkDeleteForm').submit();
+    try {
+      const res = await fetch('{{ route('admin.video.bulk-delete') }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken(),
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ ids }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.status !== 'ok') {
+        throw new Error(data.message || 'Bulk delete failed');
+      }
+
+      // Remove rows from DOM
+      removeRowsByIds(data.deleted_ids || ids);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete selected videos. Please try again.');
     }
   });
 
-  // Select all
-  $('#selectAll').on('click', function() {
-    $('input[name="ids[]"]').prop('checked', this.checked);
+  // === Select all & sync ===
+  document.getElementById('selectAll').addEventListener('change', function() {
+    const checked = this.checked;
+    document.querySelectorAll('input.row-check').forEach(cb => cb.checked = checked);
   });
 
-$('#category_id').on('change', function() {
-  const catId = $(this).val();
-  $('#subcategory_id').html('<option value="">Loading...</option>');
-  if (!catId) return $('#subcategory_id').html('<option value="">Select Sub Category</option>');
-  
-  fetch(`/admin/fetch-subcategories/${catId}`)
-    .then(res => res.json())
-    .then(data => {
-      let options = '<option value="">Select Sub Category</option>';
-      data.forEach(sc => options += `<option value="${sc.iSubCategoryId}">${sc.strSubCategoryName}</option>`);
-      $('#subcategory_id').html(options);
-    });
-});
+  document.addEventListener('change', function(e) {
+    if (e.target && e.target.classList.contains('row-check')) {
+      const total = document.querySelectorAll('input.row-check').length;
+      const sel   = document.querySelectorAll('input.row-check:checked').length;
+      document.getElementById('selectAll').checked = (total > 0 && sel === total);
+    }
+  });
 
-  // Optional: cascade subcategory filter on the left add form (if you want dynamic)
-  // You can wire an endpoint to fetch subcategories by category if needed.
+  // === Cascade subcategories on Add form (unchanged) ===
+  $('#category_id').on('change', function() {
+    const catId = $(this).val();
+    $('#subcategory_id').html('<option value="">Loading...</option>');
+    if (!catId) return $('#subcategory_id').html('<option value="">Select Sub Category</option>');
+
+    fetch(`/admin/fetch-subcategories/${catId}`)
+      .then(res => res.json())
+      .then(data => {
+        let options = '<option value="">Select Sub Category</option>';
+        data.forEach(sc => options += `<option value="${sc.iSubCategoryId}">${sc.strSubCategoryName}</option>`);
+        $('#subcategory_id').html(options);
+      });
+  });
+
 </script>
 @endsection

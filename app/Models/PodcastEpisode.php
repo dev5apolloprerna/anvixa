@@ -8,9 +8,11 @@ class PodcastEpisode extends Model
 {
     protected $table = 'podcast_episode';
     protected $primaryKey = 'podcast_id';
+    protected $keyType = 'int';
     public $timestamps = true;
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
+
 
     protected $fillable = [
         'slug',

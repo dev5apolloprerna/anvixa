@@ -2,6 +2,8 @@
 @section('title','Podcast')
 
 @section('content')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 <div class="main-content">
   <div class="page-content">
     <div class="container-fluid">
@@ -34,10 +36,9 @@
                   <select name="subcategory_id" id="subcategory_id" class="form-control" required>
                     <option value="">Select Sub Category</option>
                     @foreach($subcategories as $id => $name)
-                        <option value="{{ $id }}">{{ $name }}</option>
+                      <option value="{{ $id }}">{{ $name }}</option>
                     @endforeach
-                </select>
-
+                  </select>
                 </div>
 
                 <div class="mb-3">
@@ -55,7 +56,6 @@
                   <input type="file" class="form-control" name="image" accept=".jpg,.jpeg,.png,.webp">
                 </div>
 
-               
                 <div class="d-flex gap-2">
                   <button type="submit" class="btn btn-primary">Submit</button>
                   <button type="reset" class="btn btn-light">Clear</button>
@@ -102,83 +102,62 @@
                 </button>
               </div>
 
-              <form method="POST" id="bulkDeleteForm" action="{{ route('admin.podcast.bulk-delete') }}">
-                @csrf
-                <div class="table-responsive">
-                  <table class="table table-bordered table-striped table-hover align-middle">
-                    <thead>
-                      <tr>
-                        <th style="width:32px">
-                          <input type="checkbox" id="selectAll">
-                        </th>
-                        <th>Thumb</th>
-                        <th>Title</th>
-                        <th>Category</th>
-                        <th>Sub Category</th>
-                        <th>Link</th>
-                        <!-- <th>Status</th> -->
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @forelse($list as $row)
-                        <tr>
-                          <td><input type="checkbox" name="ids[]" value="{{ $row->podcast_id }}"></td>
-                          <td>
-                            @if($row->image)
-                              <img src="{{ asset('storage/'.$row->image) }}" alt="" style="width:56px;height:40px;object-fit:cover;border-radius:4px">
-                            @else
-                              —
-                            @endif
-                          </td>
-                          <td>{{ $row->podcast_title }}</td>
-                          <td>{{ $row->category->strCategoryName ?? '-' }}</td>
-                          <td>{{ $row->subcategory->strSubCategoryName ?? '-' }}</td>
-                          <td>
-                            <a href="{{ $row->video_link }}" target="_blank">Open</a>
-                          </td>
-                         <!--  <td>
-                            @if((int)$row->iStatus===1)
-                              <span class="badge bg-success">Active</span>
-                            @else
-                              <span class="badge bg-secondary">Inactive</span>
-                            @endif
-                          </td> -->
-                          <td >
-                            <button type="button" class="btn btn-sm btn-warning edit-btn"
-                                    data-id="{{ $row->podcast_id }}"
-                                    data-category="{{ $row->category_id }}"
-                                    data-subcategory="{{ $row->subcategory_id }}"
-                                    data-title="{{ $row->podcast_title }}"
-                                    data-link="{{ $row->video_link }}"
-                                    data-status="{{ $row->iStatus }}"
-                                    data-image="{{ $row->image }}">
-                              <i class="fas fa-edit"></i>
+              {{-- NO bulk form; JS will call the endpoint --}}
+              <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover align-middle">
+                  <thead>
+                    <tr>
+                      <th style="width:32px">
+                        <input type="checkbox" id="selectAll">
+                      </th>
+                      <th>Thumb</th>
+                      <th>Title</th>
+                      <th>Category</th>
+                      <th>Sub Category</th>
+                      <th>Link</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @forelse($list as $row)
+                      <tr data-row-id="{{ $row->podcast_id }}">
+                        <td><input type="checkbox" class="row-check" value="{{ $row->podcast_id }}"></td>
+                        <td>
+                          @if($row->image)
+                            <img src="{{ asset('anvixa/'.$row->image) }}" style="width:70px;height:50px;object-fit:cover;border-radius:4px;">
+                          @else — @endif
+                        </td>
+                        <td>{{ $row->podcast_title }}</td>
+                        <td>{{ $row->category->strCategoryName ?? '-' }}</td>
+                        <td>{{ $row->subcategory->strSubCategoryName ?? '-' }}</td>
+                        <td><a href="{{ $row->video_link }}" target="_blank">Open</a></td>
+                        <td>
+                          <button type="button" class="btn btn-sm btn-warning edit-btn"
+                                  data-id="{{ $row->podcast_id }}"
+                                  data-category="{{ $row->category_id }}"
+                                  data-subcategory="{{ $row->subcategory_id }}"
+                                  data-title="{{ $row->podcast_title }}"
+                                  data-link="{{ $row->video_link }}"
+                                  data-image="{{ $row->image }}">
+                            <i class="fas fa-edit"></i>
+                          </button>
+
+                          {{-- single delete form (server deletes image too) --}}
+                          <form method="POST" action="{{ route('admin.podcast.destroy', $row->podcast_id) }}" class="d-inline">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Delete this record?')">
+                              <i class="fas fa-trash"></i>
                             </button>
-
-                            <form method="POST" action="{{ route('admin.podcast.destroy', $row->podcast_id) }}" class="d-inline">
-                              @csrf @method('DELETE')
-                              <button type="submit" class="btn btn-sm btn-danger"
-                                      onclick="return confirm('Delete this record?')">
-                                <i class="fas fa-trash"></i>
-                              </button>
-                            </form>
-
-                            <!-- <form method="POST" action="{{ route('admin.podcast.toggle-status', $row->podcast_id) }}" class="d-inline">
-                              @csrf @method('PATCH')
-                              <button class="btn btn-sm btn-outline-dark">
-                                {{ (int)$row->iStatus===1 ? 'Deactivate' : 'Activate' }}
-                              </button>
-                            </form> -->
-                          </td>
-                        </tr>
-                      @empty
-                        <tr><td colspan="8">No records found.</td></tr>
-                      @endforelse
-                    </tbody>
-                  </table>
-                </div>
-              </form>
+                          </form>
+                        </td>
+                      </tr>
+                    @empty
+                      <tr><td colspan="7">No records found.</td></tr>
+                    @endforelse
+                  </tbody>
+                </table>
+              </div>
 
               {{ $list->withQueryString()->links() }}
             </div>
@@ -217,7 +196,6 @@
             <div class="col-md-6">
               <label class="form-label">Sub Category</label>
               <select name="subcategory_id" id="editSubcategoryId" class="form-control" required>
-                {{-- We’ll just set by JS; you can also dynamically filter based on category --}}
                 @foreach(\App\Models\SubCategory::orderBy('strSubCategoryName')->pluck('strSubCategoryName','iSubCategoryId') as $sid => $sname)
                   <option value="{{ $sid }}">{{ $sname }}</option>
                 @endforeach
@@ -239,16 +217,6 @@
               <input type="file" class="form-control" name="image" accept=".jpg,.jpeg,.png,.webp">
               <small class="text-muted">Leave empty to keep current.</small>
             </div>
-
-            <!-- <div class="col-md-6">
-              <label class="form-label d-block">Status</label>
-              <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="editStatusSwitch">
-                <label class="form-check-label" for="editStatusSwitch">Active</label>
-              </div>
-              <input type="hidden" name="iStatus" id="editStatus">
-            </div> -->
-
           </div>
         </div>
         <div class="modal-footer d-flex">
@@ -264,58 +232,102 @@
 @section('scripts')
 @include('common.footerjs')
 <script>
-  // Edit button -> fill modal
+  // ===== util: CSRF token from meta =====
+  function csrfToken() {
+    const el = document.querySelector('meta[name="csrf-token"]');
+    return el ? el.getAttribute('content') : '';
+  }
+  function selectedIds() {
+    return Array.from(document.querySelectorAll('input.row-check:checked')).map(e => e.value);
+  }
+  function removeRows(ids) {
+    ids.forEach(id => {
+      const tr = document.querySelector(`tr[data-row-id="${id}"]`);
+      if (tr) tr.remove();
+    });
+    const total = document.querySelectorAll('input.row-check').length;
+    const sel   = document.querySelectorAll('input.row-check:checked').length;
+    const sa    = document.getElementById('selectAll');
+    if (sa) sa.checked = (total > 0 && sel === total);
+  }
+
+  // ===== Edit button -> fill modal =====
   $('.edit-btn').on('click', function () {
-    const id     = $(this).data('id');
-    const cat    = $(this).data('category');
-    const sub    = $(this).data('subcategory');
-    const title  = $(this).data('title');
-    const link   = $(this).data('link');
-    const status = parseInt($(this).data('status'), 10) === 1;
+    const id    = $(this).data('id');
+    const cat   = $(this).data('category');
+    const sub   = $(this).data('subcategory');
+    const title = $(this).data('title');
+    const link  = $(this).data('link');
 
     $('#editPodcastId').val(id);
     $('#editCategoryId').val(cat);
     $('#editSubcategoryId').val(sub);
     $('#editTitle').val(title);
     $('#editLink').val(link);
-    $('#editStatusSwitch').prop('checked', status);
-    $('#editStatus').val(status ? 1 : 0);
 
     $('#editpodcastForm').attr('action', '{{ url('admin/podcast') }}/' + id);
     $('#editVideoModal').modal('show');
   });
 
-  $('#editStatusSwitch').on('change', function () {
-    $('#editStatus').val(this.checked ? 1 : 0);
-  });
+  // ===== Bulk delete via JS (no form) =====
+  document.getElementById('bulkDeleteBtn').addEventListener('click', async function () {
+    const ids = selectedIds();
+    if (ids.length === 0) {
+      alert('Please select at least one podcast.');
+      return;
+    }
+    if (!confirm('Delete selected podcast(s)?')) return;
 
-  // Bulk delete
-  $('#bulkDeleteBtn').on('click', function(){
-    if(confirm('Delete selected podcast episode?')) {
-      $('#bulkDeleteForm').submit();
+    try {
+      const res = await fetch('{{ route('admin.podcast.bulk-delete') }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken(),
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ ids })
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.status !== 'ok') {
+        throw new Error(data.message || 'Bulk delete failed');
+      }
+
+      // Remove from DOM without reload
+      removeRows(data.deleted_ids || ids);
+    } catch (e) {
+      console.error(e);
+      alert('Failed to delete selected podcasts. Please try again.');
     }
   });
 
-  // Select all
-  $('#selectAll').on('click', function() {
-    $('input[name="ids[]"]').prop('checked', this.checked);
+  // ===== Select all / sync =====
+  document.getElementById('selectAll').addEventListener('change', function () {
+    const checked = this.checked;
+    document.querySelectorAll('input.row-check').forEach(cb => cb.checked = checked);
+  });
+  document.addEventListener('change', function (e) {
+    if (e.target && e.target.classList.contains('row-check')) {
+      const total = document.querySelectorAll('input.row-check').length;
+      const sel   = document.querySelectorAll('input.row-check:checked').length;
+      document.getElementById('selectAll').checked = (total > 0 && sel === total);
+    }
   });
 
-$('#category_id').on('change', function() {
-  const catId = $(this).val();
-  $('#subcategory_id').html('<option value="">Loading...</option>');
-  if (!catId) return $('#subcategory_id').html('<option value="">Select Sub Category</option>');
-  
-  fetch(`/admin/fetch-subcategories/${catId}`)
-    .then(res => res.json())
-    .then(data => {
-      let options = '<option value="">Select Sub Category</option>';
-      data.forEach(sc => options += `<option value="${sc.iSubCategoryId}">${sc.strSubCategoryName}</option>`);
-      $('#subcategory_id').html(options);
-    });
-});
+  // ===== Cascade subcategories (Add form) =====
+  $('#category_id').on('change', function() {
+    const catId = $(this).val();
+    $('#subcategory_id').html('<option value="">Loading...</option>');
+    if (!catId) return $('#subcategory_id').html('<option value="">Select Sub Category</option>');
 
-  // Optional: cascade subcategory filter on the left add form (if you want dynamic)
-  // You can wire an endpoint to fetch subcategories by category if needed.
+    fetch(`/admin/fetch-subcategories/${catId}`)
+      .then(res => res.json())
+      .then(data => {
+        let options = '<option value="">Select Sub Category</option>';
+        data.forEach(sc => options += `<option value="${sc.iSubCategoryId}">${sc.strSubCategoryName}</option>`);
+        $('#subcategory_id').html(options);
+      });
+  });
 </script>
 @endsection

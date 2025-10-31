@@ -84,6 +84,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/{video}',     [VideoController::class, 'update'])->name('update');
         Route::delete('/{video}',  [VideoController::class, 'destroy'])->name('destroy');
         Route::post('/bulk-delete',[VideoController::class, 'bulkDelete'])->name('bulk-delete');
+        
         Route::patch('/{video}/toggle-status', [VideoController::class, 'toggleStatus'])->name('toggle-status');
     });
 

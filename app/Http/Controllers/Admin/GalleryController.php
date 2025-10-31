@@ -45,6 +45,8 @@ class GalleryController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
+            'category_id'    => ['required', 'integer', Rule::exists('category','iCategoryId')],
+            'subcategory_id' => ['required', 'integer', Rule::exists('sub_category','iSubCategoryId')],
             'title'  => ['required', 'string', 'max:200'],
             'slug'   => ['nullable', 'string', 'max:200', Rule::unique('gallery', 'slug')],
             'iStatus'=> ['nullable', 'integer', 'in:0,1'],
@@ -66,6 +68,8 @@ class GalleryController extends Controller
         }
 
         $row = Gallery::create([
+            'category_id'    => $data['category_id'],
+            'subcategory_id'    => $data['subcategory_id'],
             'title'    => $data['title'],
             'slug'     => $slug,
             'image'    => $imageRel,
@@ -85,6 +89,8 @@ class GalleryController extends Controller
         $row = Gallery::where('gallery_id', $id)->where('isDelete', 0)->firstOrFail();
 
         $data = $request->validate([
+            'category_id'    => ['required', 'integer', Rule::exists('category','iCategoryId')],
+            'subcategory_id' => ['required', 'integer', Rule::exists('sub_category','iSubCategoryId')],
             'title'  => ['sometimes', 'required', 'string', 'max:200'],
             'slug'   => ['nullable', 'string', 'max:200', Rule::unique('gallery', 'slug')->ignore($row->gallery_id, 'gallery_id')],
             'iStatus'=> ['nullable', 'integer', 'in:0,1'],
@@ -92,6 +98,8 @@ class GalleryController extends Controller
             'file'   => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,gif,pdf,doc,docx,xls,xlsx,ppt,pptx,txt', 'max:51200'],
         ]);
 
+        if (array_key_exists('category_id', $data)) $row->category_id = $data['category_id'];
+        if (array_key_exists('subcategory_id', $data)) $row->subcategory_id = $data['subcategory_id'];
         if (array_key_exists('title', $data)) $row->title = $data['title'];
         if (array_key_exists('slug', $data))  $row->slug  = $data['slug'] ?: Str::slug($row->title);
         if (array_key_exists('iStatus', $data)) $row->iStatus = (int)$data['iStatus'];
@@ -121,10 +129,34 @@ class GalleryController extends Controller
         $row->updated_at = now();
         $row->save();
 
-        // If you prefer hard delete & physical file removal, uncomment:
-        // anx_delete($row->image);
-        // $row->delete();
+
+        if (!empty($row->image)) {
+            anx_delete($row->image); // same helper as Gallery
+        }
 
         return back()->with('success','Gallery deleted.');
     }
+   public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids', $request->json('ids', []));
+        if (!is_array($ids) || empty($ids)) {
+            return response()->json(['status'=>'error','message'=>'No items selected'], 422);
+        }
+
+        $rows = \App\Models\Gallery::whereIn('gallery_id', $ids)->get(['gallery_id','image']);
+
+        foreach ($rows as $row) {
+            if (!empty($row->image)) {
+                try { anx_delete($row->image); } catch (\Throwable $e) {}
+            }
+        }
+
+        \App\Models\Gallery::whereIn('gallery_id', $ids)->update([
+            'isDelete'   => 1,
+            'updated_at' => now(),
+        ]);
+
+        return response()->json(['status'=>'ok','deleted_ids'=>$ids]);
+    }
+
 }
