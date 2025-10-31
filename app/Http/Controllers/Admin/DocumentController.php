@@ -172,7 +172,7 @@ class DocumentController extends Controller
         return back()->with('success', 'Document deleted.');
     }
 
-    public function bulkDelete(Request $request)
+  public function bulkDelete(Request $request)
     {
         // Accept ids from form-data OR JSON
         $ids = $request->input('ids', $request->json('ids', []));

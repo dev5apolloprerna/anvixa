@@ -7,17 +7,12 @@ use Illuminate\Support\Str;
 
 class Document extends Model
 {
-    protected $table = 'document';
+        protected $table = 'document';
 
-    protected $primaryKey = 'document_id'; // if that's your PK
+     protected $primaryKey = 'document_id'; // if that's your PK
     protected $fillable = [
-        'title',
-        'slug',
-        'document',
-        'category_id',
-        'subcategory_id',
-        'iStatus',
-        'isDelete',
+        'title', 'slug', 'document', 'category_id', 'subcategory_id',
+        'iStatus', 'isDelete',
         // add any other fields you actually write
     ];
 
@@ -69,12 +64,6 @@ class Document extends Model
 
         return $slug;
     }
-    public function category()
-    {
-        return $this->belongsTo(Category::class, 'category_id', 'iCategoryId');
-    }
-    public function subcategory()
-    {
-        return $this->belongsTo(SubCategory::class, 'subcategory_id', 'iSubCategoryId');
-    }
+    public function category(){ return $this->belongsTo(Category::class, 'category_id', 'iCategoryId'); }
+    public function subcategory(){ return $this->belongsTo(SubCategory::class, 'subcategory_id', 'iSubCategoryId'); }
 }
