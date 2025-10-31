@@ -146,26 +146,47 @@ class DocumentController extends Controller
 
     public function destroy(Document $document)
     {
-        // soft delete (logical)
-        $document->isDelete = 1;
-        $document->save();
+        // 1) delete file first (if any)
+        if (!empty($document->document)) {
+            try { anx_delete($document->document); } catch (\Throwable $e) {}
+        }
 
-        // If you want *hard* delete + file removal, do this instead:
-        // anx_delete($document->document);
-        // $document->delete();
+        // 2) set soft-delete flag WITHOUT triggering updating hooks
+        // Option A (Laravel 9+): saveQuietly
+        $document->forceFill(['isDelete' => 1])->saveQuietly();
+
+        // Option B: temporarily disable model events (any Laravel)
+        // \Illuminate\Database\Eloquent\Model::withoutEvents(function () use ($document) {
+        //     $document->update(['isDelete' => 1]);
+        // });
 
         return back()->with('success', 'Document deleted.');
     }
 
-    public function bulkDelete(Request $request)
+  public function bulkDelete(Request $request)
     {
-        $ids = (array) $request->input('ids', []);
-        if (!$ids) {
-            return back()->with('error', 'Select at least one row.');
+        // Accept ids from form-data OR JSON
+        $ids = $request->input('ids', $request->json('ids', []));
+        if (!is_array($ids) || count($ids) === 0) {
+            return response()->json(['status' => 'error', 'message' => 'No items selected'], 422);
         }
 
-        Document::whereIn('document_id', $ids)->update(['isDelete' => 1]);
+        // Delete images
+        $rows = Document::whereIn('document_id', $ids)->get(['document_id','document']);
+        foreach ($rows as $row) {
+            if (!empty($row->document) && function_exists('anx_delete')) {
+                try { anx_delete($row->document); } catch (\Throwable $e) {}
+            }
+        }
 
-        return back()->with('success', 'Selected documents deleted.');
+        // Soft delete rows
+        Document::whereIn('document_id', $ids)->update([
+            'isDelete'   => 1,
+            'updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Selected Document deleted.');
+
+        return response()->json(['status' => 'ok', 'deleted_ids' => $ids]);
     }
 }

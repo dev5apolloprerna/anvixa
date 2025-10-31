@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/Admin/VideoController.php
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -7,20 +6,20 @@ use App\Models\Video;
 use App\Models\Category;
 use App\Models\SubCategory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class VideoController extends Controller
 {
     public function index(Request $request)
     {
-        $q = trim($request->get('q', ''));
-        $categoryId = (int)$request->get('category_id', 0);
-        $subcatId   = (int)$request->get('subcategory_id', 0);
+        $q          = trim($request->get('q', ''));
+        $categoryId = (int) $request->get('category_id', 0);
+        $subcatId   = (int) $request->get('subcategory_id', 0);
 
-        $categories = Category::orderBy('strCategoryName')->pluck('strCategoryName', 'iCategoryId');
+        $categories = Category::orderBy('strCategoryName')
+            ->pluck('strCategoryName', 'iCategoryId');
 
-        // Always pass all subcategories (not just filtered ones)
+        // Pass ALL subcategories (like GalleryController)
         $subcategories = SubCategory::orderBy('strSubCategoryName')
             ->pluck('strSubCategoryName', 'iSubCategoryId');
 
@@ -31,20 +30,34 @@ class VideoController extends Controller
                       ->orWhere('video_link', 'like', "%{$q}%");
                 });
             })
-            ->when($categoryId > 0, fn($x) => $x->where('category_id', $categoryId))
-            ->when($subcatId > 0, fn($x) => $x->where('subcategory_id', $subcatId))
+            ->when($categoryId > 0, fn ($x) => $x->where('category_id', $categoryId))
+            ->when($subcatId > 0, fn ($x) => $x->where('subcategory_id', $subcatId))
             ->orderByDesc('video_id')
             ->paginate(15);
 
-        return view('admin.video.index', compact('list', 'q', 'categoryId', 'subcatId', 'categories', 'subcategories'));
+        return view('admin.video.index', compact(
+            'list',
+            'q',
+            'categoryId',
+            'subcatId',
+            'categories',
+            'subcategories'
+        ));
     }
 
+    public function show(int $id)
+    {
+        $row = Video::where('video_id', $id)->where('isDelete', 0)->firstOrFail();
+        // Mirror GalleryController pattern
+        $row->image_url = $row->image ? anx_url($row->image) : null; // <-- uses anx_url()
+        return response()->json($row);
+    }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'category_id'    => ['required', 'integer', Rule::exists('category','iCategoryId')],
-            'subcategory_id' => ['required', 'integer', Rule::exists('sub_category','iSubCategoryId')],
+            'category_id'    => ['required', 'integer', Rule::exists('category', 'iCategoryId')],
+            'subcategory_id' => ['required', 'integer', Rule::exists('sub_category', 'iSubCategoryId')],
             'video_title'    => ['required', 'string', 'max:200'],
             'video_link'     => ['required', 'string', 'max:200'],
             'image'          => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
@@ -52,11 +65,25 @@ class VideoController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            // store under public/videos; requires `php artisan storage:link`
-            $data['image'] = $request->file('image')->store('videos', 'public');
-        }
+                $file = $request->file('image');
+                // If input name='image[]', take only the first one
+                if (is_array($file)) {
+                    $file = $file[0];
+                }
 
-        $data['iStatus']  = (int)($data['iStatus'] ?? 1);
+                // Upload and return path string
+                $path = anx_upload($file, 'videos');
+
+                // Make sure it's a string
+                if (is_array($path)) {
+                    $path = $path['path'] ?? reset($path);
+                }
+
+                $data['image'] = (string) $path;
+            }
+
+
+        $data['iStatus']  = (int) ($data['iStatus'] ?? 1);
         $data['isDelete'] = 0;
 
         Video::create($data);
@@ -67,8 +94,8 @@ class VideoController extends Controller
     public function update(Request $request, Video $video)
     {
         $data = $request->validate([
-            'category_id'    => ['required', 'integer', Rule::exists('category','iCategoryId')],
-            'subcategory_id' => ['required', 'integer', Rule::exists('sub_category','iSubCategoryId')],
+            'category_id'    => ['required', 'integer', Rule::exists('category', 'iCategoryId')],
+            'subcategory_id' => ['required', 'integer', Rule::exists('sub_category', 'iSubCategoryId')],
             'video_title'    => ['required', 'string', 'max:200'],
             'video_link'     => ['required', 'string', 'max:200'],
             'image'          => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
@@ -76,14 +103,25 @@ class VideoController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            // delete old image if present
-            if ($video->image && Storage::disk('public')->exists($video->image)) {
-                Storage::disk('public')->delete($video->image);
-            }
-            $data['image'] = $request->file('image')->store('videos', 'public');
-        }
+                $file = $request->file('image');
+                // If input name='image[]', take only the first one
+                if (is_array($file)) {
+                    $file = $file[0];
+                }
 
-        $data['iStatus'] = (int)($data['iStatus'] ?? $video->iStatus);
+                // Upload and return path string
+                $path = anx_upload($file, 'videos');
+
+                // Make sure it's a string
+                if (is_array($path)) {
+                    $path = $path['path'] ?? reset($path);
+                }
+
+                $data['image'] = (string) $path;
+            }
+
+
+        $data['iStatus'] = (int) ($data['iStatus'] ?? $video->iStatus);
 
         $video->update($data);
 
@@ -92,32 +130,53 @@ class VideoController extends Controller
 
     public function toggleStatus(Video $video)
     {
-        $video->iStatus = (int)!$video->iStatus;
+        $video->iStatus = (int) !$video->iStatus;
         $video->save();
 
         return back()->with('success', 'Status updated.');
     }
 
-    public function destroy(Video $video)
+   public function destroy(Request $request, $id)
     {
-        // soft delete flag
-        $video->isDelete = 1;
-        $video->save();
+        $video = Video::where('video_id', $id)->firstOrFail();
+
+        // remove physical image if present
+        if (!empty($video->image)) {
+            anx_delete($video->image); // same helper as Gallery
+        }
+
+        $video->update([
+            'isDelete'   => 1,
+            'updated_at' => now(),
+        ]);
 
         return back()->with('success', 'Video deleted.');
     }
 
+
     public function bulkDelete(Request $request)
     {
-        $ids = $request->input('ids', []);
-        if (!is_array($ids) || empty($ids)) {
-            return back()->with('error', 'Select at least one row.');
+        // Accept ids from form-data OR JSON
+        $ids = $request->input('ids', $request->json('ids', []));
+        if (!is_array($ids) || count($ids) === 0) {
+            return response()->json(['status' => 'error', 'message' => 'No items selected'], 422);
         }
 
-        Video::withoutGlobalScope('notDeleted')
-            ->whereIn('video_id', $ids)
-            ->update(['isDelete' => 1]);
+        // Delete images
+        $rows = Video::whereIn('video_id', $ids)->get(['video_id','image']);
+        foreach ($rows as $row) {
+            if (!empty($row->image) && function_exists('anx_delete')) {
+                try { anx_delete($row->image); } catch (\Throwable $e) {}
+            }
+        }
 
-        return back()->with('success', 'Selected videos deleted.');
+        // Soft delete rows
+        Video::whereIn('video_id', $ids)->update([
+            'isDelete'   => 1,
+            'updated_at' => now(),
+        ]);
+
+        return response()->json(['status' => 'ok', 'deleted_ids' => $ids]);
     }
+
 }
