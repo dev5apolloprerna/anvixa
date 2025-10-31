@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `category` (
   UNIQUE KEY `uniq_category_name` (`strCategoryName`),
   UNIQUE KEY `uniq_category_slug` (`strSlug`),
   UNIQUE KEY `category_strslug_unique` (`strSlug`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 ;
 
 --
 -- Dumping data for table `category`
@@ -64,8 +64,8 @@ DROP TABLE IF EXISTS `document`;
 CREATE TABLE IF NOT EXISTS `document` (
   `document_id` int NOT NULL AUTO_INCREMENT,
   `title` varchar(200) NOT NULL,
-  `slug` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  `document` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `slug` varchar(200) CHARACTER SET utf8mb4 NOT NULL,
+  `document` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
   `category_id` int NOT NULL,
   `subcategory_id` int NOT NULL,
   `iStatus` int NOT NULL DEFAULT '1',
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS `document` (
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`document_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 ;
 
 --
 -- Dumping data for table `document`
@@ -94,7 +94,7 @@ DROP TABLE IF EXISTS `gallery`;
 CREATE TABLE IF NOT EXISTS `gallery` (
   `gallery_id` int NOT NULL AUTO_INCREMENT,
   `title` varchar(200) NOT NULL,
-  `slug` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `slug` varchar(200) CHARACTER SET utf8mb4 NOT NULL,
   `image` varchar(100) NOT NULL,
   `category_id` int NOT NULL,
   `subcategory_id` int NOT NULL,
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS `gallery` (
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`gallery_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 ;
 
 --
 -- Dumping data for table `gallery`
@@ -146,7 +146,7 @@ CREATE TABLE IF NOT EXISTS `podcast_episode` (
   `slug` varchar(200) NOT NULL,
   `category_id` int NOT NULL,
   `subcategory_id` int NOT NULL,
-  `podcast_title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `podcast_title` varchar(200) CHARACTER SET utf8mb4 NOT NULL,
   `video_link` varchar(200) NOT NULL,
   `image` varchar(100) DEFAULT NULL,
   `iStatus` int NOT NULL DEFAULT '1',
@@ -154,7 +154,7 @@ CREATE TABLE IF NOT EXISTS `podcast_episode` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`podcast_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 ;
 
 --
 -- Dumping data for table `podcast_episode`
@@ -296,7 +296,7 @@ CREATE TABLE IF NOT EXISTS `sub_category` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`iSubCategoryId`),
   KEY `fk_sub_category_category` (`iCategoryId`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 ;
 
 --
 -- Dumping data for table `sub_category`
@@ -379,7 +379,7 @@ CREATE TABLE IF NOT EXISTS `video` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`video_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 ;
 
 --
 -- Dumping data for table `video`

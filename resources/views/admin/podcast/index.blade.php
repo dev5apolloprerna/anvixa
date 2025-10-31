@@ -1,69 +1,190 @@
 @extends('layouts.app')
-@section('title','Podcast')
+@section('title', 'Podcast')
 
 @section('content')
-<meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-<div class="main-content">
-  <div class="page-content">
-    <div class="container-fluid">
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
 
-      @include('common.alert')
+                @include('common.alert')
 
-      <div class="row">
-        {{-- ===== Left: Add Form ===== --}}
-        <div class="col-lg-4">
-          <div class="card">
-            <div class="card-header">
-              <h4 class="card-title mb-0">Add Podcast</h4>
+                <div class="row">
+                    {{-- ===== Left: Add Form ===== --}}
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title mb-0">Add Podcast</h4>
+                            </div>
+                            <div class="card-body">
+                                <form method="POST" action="{{ route('admin.podcast.store') }}"
+                                    enctype="multipart/form-data" id="podcastForm">
+                                    @csrf
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Category <span class="text-danger">*</span></label>
+                                        <select name="category_id" id="category_id" class="form-control" required>
+                                            <option value="">Select Category</option>
+                                            @foreach ($categories as $id => $name)
+                                                <option value="{{ $id }}" @selected(old('category_id') == $id)>
+                                                    {{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Sub Category <span class="text-danger">*</span></label>
+                                        <select name="subcategory_id" id="subcategory_id" class="form-control" required>
+                                            <option value="">Select Sub Category</option>
+                                            @foreach ($subcategories as $id => $name)
+                                                <option value="{{ $id }}">{{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Title <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="podcast_title" maxlength="200"
+                                            required value="{{ old('podcast_title') }}">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Video Link <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="video_link" maxlength="200"
+                                            required placeholder="https://…" value="{{ old('video_link') }}">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Thumbnail (jpg/png/webp, max 2MB)</label>
+                                        <input type="file" class="form-control" name="image"
+                                            accept=".jpg,.jpeg,.png,.webp">
+                                    </div>
+
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary">Submit</button>
+                                        <button type="reset" class="btn btn-light">Clear</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ===== Right: Listing ===== --}}
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <form method="GET" class="row g-2 align-items-center"
+                                    action="{{ route('admin.podcast.index') }}">
+                                    <div class="col-md-3">
+                                        <select class="form-control" name="category_id" id="filter_category">
+                                            <option value="">All Categories</option>
+                                            @foreach ($categories as $id => $name)
+                                                <option value="{{ $id }}" @selected($categoryId == $id)>
+                                                    {{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <select class="form-control" name="subcategory_id" id="filter_subcategory">
+                                            <option value="">All Sub Categories</option>
+                                            @foreach ($subcategories as $id => $name)
+                                                <option value="{{ $id }}" @selected($subcatId == $id)>
+                                                    {{ $name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" name="q"
+                                            value="{{ $q }}" placeholder="Search title/link">
+                                    </div>
+                                    <div class="col-md-2 d-flex gap-2">
+                                        <button class="btn btn-primary w-100">Search</button>
+                                        <a href="{{ route('admin.podcast.index') }}" class="btn btn-light w-100">Reset</a>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-end mb-2">
+                                    <button type="button" id="bulkDeleteBtn" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash"></i> Delete All
+                                    </button>
+                                </div>
+
+                                {{-- NO bulk form; JS will call the endpoint --}}
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-striped table-hover align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:32px">
+                                                    <input type="checkbox" id="selectAll">
+                                                </th>
+                                                <th>Thumb</th>
+                                                <th>Title</th>
+                                                <th>Category</th>
+                                                <th>Sub Category</th>
+                                                <th>Link</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse($list as $row)
+                                                <tr data-row-id="{{ $row->podcast_id }}">
+                                                    <td><input type="checkbox" class="row-check"
+                                                            value="{{ $row->podcast_id }}"></td>
+                                                    <td>
+                                                        @if ($row->image)
+                                                            <img src="{{ asset('anvixa/' . $row->image) }}"
+                                                                style="width:70px;height:50px;object-fit:cover;border-radius:4px;">
+                                                        @else
+                                                            —
+                                                        @endif
+                                                    </td>
+                                                    <td>{{ $row->podcast_title }}</td>
+                                                    <td>{{ $row->category->strCategoryName ?? '-' }}</td>
+                                                    <td>{{ $row->subcategory->strSubCategoryName ?? '-' }}</td>
+                                                    <td><a href="{{ $row->video_link }}" target="_blank">Open</a></td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-sm btn-warning edit-btn"
+                                                            data-id="{{ $row->podcast_id }}"
+                                                            data-category="{{ $row->category_id }}"
+                                                            data-subcategory="{{ $row->subcategory_id }}"
+                                                            data-title="{{ $row->podcast_title }}"
+                                                            data-link="{{ $row->video_link }}"
+                                                            data-image="{{ $row->image }}">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+
+                                                        {{-- single delete form (server deletes image too) --}}
+                                                        <form method="POST"
+                                                            action="{{ route('admin.podcast.destroy', $row->podcast_id) }}"
+                                                            class="d-inline">
+                                                            @csrf @method('DELETE')
+                                                            <button type="submit" class="btn btn-sm btn-danger"
+                                                                onclick="return confirm('Delete this record?')">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="7">No records found.</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {{ $list->withQueryString()->links() }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <div class="card-body">
-              <form method="POST" action="{{ route('admin.podcast.store') }}" enctype="multipart/form-data" id="podcastForm">
-                @csrf
-
-                <div class="mb-3">
-                  <label class="form-label">Category <span class="text-danger">*</span></label>
-                  <select name="category_id" id="category_id" class="form-control" required>
-                    <option value="">Select Category</option>
-                    @foreach($categories as $id => $name)
-                      <option value="{{ $id }}" @selected(old('category_id')==$id)>{{ $name }}</option>
-                    @endforeach
-                  </select>
-                </div>
-
-                <div class="mb-3">
-                  <label class="form-label">Sub Category <span class="text-danger">*</span></label>
-                  <select name="subcategory_id" id="subcategory_id" class="form-control" required>
-                    <option value="">Select Sub Category</option>
-                    @foreach($subcategories as $id => $name)
-                      <option value="{{ $id }}">{{ $name }}</option>
-                    @endforeach
-                  </select>
-                </div>
-
-                <div class="mb-3">
-                  <label class="form-label">Title <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" name="podcast_title" maxlength="200" required value="{{ old('podcast_title') }}">
-                </div>
-
-                <div class="mb-3">
-                  <label class="form-label">Video Link <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" name="video_link" maxlength="200" required placeholder="https://…" value="{{ old('video_link') }}">
-                </div>
-
-                <div class="mb-3">
-                  <label class="form-label">Thumbnail (jpg/png/webp, max 2MB)</label>
-                  <input type="file" class="form-control" name="image" accept=".jpg,.jpeg,.png,.webp">
-                </div>
-
-                <div class="d-flex gap-2">
-                  <button type="submit" class="btn btn-primary">Submit</button>
-                  <button type="reset" class="btn btn-light">Clear</button>
-                </div>
-              </form>
-            </div>
-          </div>
         </div>
+    </div>
 
         {{-- ===== Right: Listing ===== --}}
         <div class="col-lg-8">
@@ -163,8 +284,6 @@
             </div>
           </div>
         </div>
-      </div>
-
     </div>
   </div>
 </div>

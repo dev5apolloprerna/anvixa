@@ -27,7 +27,7 @@ class VideoController extends Controller
             ->when($q !== '', function ($x) use ($q) {
                 $x->where(function ($w) use ($q) {
                     $w->where('video_title', 'like', "%{$q}%")
-                      ->orWhere('video_link', 'like', "%{$q}%");
+                        ->orWhere('video_link', 'like', "%{$q}%");
                 });
             })
             ->when($categoryId > 0, fn ($x) => $x->where('category_id', $categoryId))

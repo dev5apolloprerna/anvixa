@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Gallery')
+@section('title', 'Gallery')
 
 @section('content')
 <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -9,14 +9,10 @@
     <div class="container-fluid">
       @include('common.alert')
 
-      <div class="row">
-        {{-- LEFT: ADD FORM --}}
-        <div class="col-lg-4">
-          <div class="card">
-            <div class="card-header"><h4 class="mb-0">Add Gallery Image</h4></div>
-            <div class="card-body">
-              <form method="POST" action="{{ route('admin.gallery.store') }}" enctype="multipart/form-data" id="galleryForm">
-                @csrf
+    <div class="main-content">
+        <div class="page-content">
+            <div class="container-fluid">
+                @include('common.alert')
 
                 <div class="mb-3">
                   <label class="form-label">Category <span class="text-danger">*</span></label>
@@ -28,18 +24,19 @@
                   </select>
                 </div>
 
-                <div class="mb-3">
-                  <label class="form-label">Sub Category <span class="text-danger">*</span></label>
-                  <select name="subcategory_id" id="subcategory_id" class="form-control" required>
-                    <option value="">Select Sub Category</option>
-                  </select>
-                </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Sub Category <span class="text-danger">*</span></label>
+                                        <select name="subcategory_id" id="subcategory_id" class="form-control" required>
+                                            <option value="">Select Sub Category</option>
+                                        </select>
+                                    </div>
 
-                <div class="mb-3">
-                  <label class="form-label">Title <span class="text-danger">*</span></label>
-                  <input type="text" name="title" id="title" class="form-control" maxlength="200" required>
-                  <small class="text-muted">Slug: <span id="slugPreview"></span></small>
-                </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Title <span class="text-danger">*</span></label>
+                                        <input type="text" name="title" id="title" class="form-control"
+                                            maxlength="200" required>
+                                        <small class="text-muted">Slug: <span id="slugPreview"></span></small>
+                                    </div>
 
                 <div class="mb-3">
                   <label class="form-label">Image <span class="text-danger">*</span></label>
@@ -56,36 +53,14 @@
           </div>
         </div>
 
-        {{-- RIGHT: LIST --}}
-        <div class="col-lg-8">
-          <div class="card">
-            <div class="card-header">
-              <form method="GET" class="row g-2 align-items-center" action="{{ route('admin.gallery.index') }}">
-                <div class="col-md-3">
-                  <select class="form-control" name="category_id" id="filter_category">
-                    <option value="">All Categories</option>
-                    @foreach($categories as $id => $name)
-                      <option value="{{ $id }}" @selected($categoryId == $id)>{{ $name }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-md-3">
-                  <select class="form-control" name="subcategory_id" id="filter_subcategory">
-                    <option value="">All Sub Categories</option>
-                    @foreach($subcategories as $sid => $sname)
-                      <option value="{{ $sid }}" @selected($subcatId == $sid)>{{ $sname }}</option>
-                    @endforeach
-                  </select>
-                </div>
-                <div class="col-md-4">
-                  <input type="text" class="form-control" name="q" value="{{ $q }}" placeholder="Search title / slug">
-                </div>
-                <div class="col-md-2 d-flex gap-2">
-                  <button class="btn btn-primary w-100">Search</button>
-                  <a href="{{ route('admin.gallery.index') }}" class="btn btn-light w-100">Reset</a>
-                </div>
-              </form>
-            </div>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-primary">Submit</button>
+                                        <button type="reset" class="btn btn-light">Clear</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
 
             <div class="card-body">
               <div class="d-flex justify-content-end mb-2">
@@ -147,24 +122,24 @@
                 </table>
               </div>
 
-              {{ $list->withQueryString()->links() }}
-            </div>
-          </div>
-        </div>
-      </div>
+                                {{ $list->withQueryString()->links() }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-      {{-- EDIT MODAL --}}
-      <div class="modal fade" id="editGalleryModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-          <form method="POST" id="editGalleryForm" enctype="multipart/form-data">
-            @csrf @method('PUT')
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title">Edit Gallery</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-              </div>
-              <div class="modal-body">
-                <input type="hidden" id="editId">
+                {{-- EDIT MODAL --}}
+                <div class="modal fade" id="editGalleryModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <form method="POST" id="editGalleryForm" enctype="multipart/form-data">
+                            @csrf @method('PUT')
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit Gallery</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <input type="hidden" id="editId">
 
                 <div class="row g-3">
                   <div class="col-md-6">
@@ -196,19 +171,10 @@
                     <small class="text-muted">Leave empty to keep existing.</small>
                   </div>
                 </div>
-              </div>
-              <div class="modal-footer d-flex">
-                <button class="btn btn-primary" type="submit">Update</button>
-                <button class="btn btn-light" type="button" data-bs-dismiss="modal">Cancel</button>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
 
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 @endsection
 
 @section('scripts')
@@ -241,18 +207,14 @@
     const t = document.getElementById('slugPreview'); if (t) t.textContent = s;
   });
 
-  // Dependent subcategory (create)
-  $('#category_id').on('change', function(){
-    const cid = $(this).val(), sub = $('#subcategory_id');
-    sub.html('<option value="">Loading...</option>');
-    if (!cid) return sub.html('<option value="">Select Sub Category</option>');
-    fetch(`{{ route('admin.fetch-subcategories', ':id') }}`.replace(':id', cid))
-      .then(r=>r.json()).then(data=>{
-        let opt = '<option value="">Select Sub Category</option>';
-        data.forEach(sc => opt += `<option value="${sc.iSubCategoryId}">${sc.strSubCategoryName}</option>`);
-        sub.html(opt);
-      }).catch(()=> sub.html('<option value="">Select Sub Category</option>'));
-  });
+            // ===== JS bulk delete (no form) =====
+            document.getElementById('bulkDeleteBtn').addEventListener('click', async function() {
+                const ids = selectedIds();
+                if (ids.length === 0) {
+                    alert('Please select at least one image.');
+                    return;
+                }
+                if (!confirm('Delete selected images?')) return;
 
   // Select all
   $('#selectAll').on('click', function(){ $('input.row-check').prop('checked', this.checked); });
@@ -271,11 +233,12 @@
     $('#editGalleryModal').modal('show');
   });
 
-  // Slug preview (edit)
-  document.getElementById('editTitle')?.addEventListener('input', function(){
-    const s = this.value.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
-    const t = document.getElementById('editSlugPreview'); if (t) t.textContent = s;
-  });
+                    if (!res.ok || data.status !== 'ok') {
+                        if (res.status === 419 || (data && /csrf/i.test(data.message || ''))) {
+                            throw new Error('CSRF token mismatch. Refresh and try again.');
+                        }
+                        throw new Error(data.message || 'Bulk delete failed.');
+                    }
 
   // Dependent subcategory (edit)
   $('#editCategoryId').on('change', function(){

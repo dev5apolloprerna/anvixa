@@ -40,13 +40,17 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'admin' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
         'web_employees' => [
-                'driver' => 'session',
-                'provider' => 'employees', // For employees, using the same session driver but different provider
-            ],
+            'driver' => 'session',
+            'provider' => 'employees', // For employees, using the same session driver but different provider
+        ],
         'api' => [
-                'driver' => 'jwt',
-                'provider' => 'users',
+            'driver' => 'jwt',
+            'provider' => 'users',
         ],
 
     ],
@@ -73,7 +77,7 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
         ],
-         'employees' => [
+        'employees' => [
             'driver' => 'eloquent',
             'model' => App\Models\Employee::class,
         ],
@@ -102,7 +106,7 @@ return [
             'throttle' => 60,
         ],
     ],*/
-   
+
     'passwords' => [
         'users' => [
             'provider' => 'users',
