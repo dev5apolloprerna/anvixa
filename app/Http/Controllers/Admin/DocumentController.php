@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -24,11 +25,11 @@ class DocumentController extends Controller
         $categories    = Category::orderBy('strCategoryName')->pluck('strCategoryName', 'iCategoryId');
         $subcategories = SubCategory::orderBy('strSubCategoryName')->pluck('strSubCategoryName', 'iSubCategoryId');
 
-        $list = Document::with(['category','subcategory'])
+        $list = Document::with(['category', 'subcategory'])
             ->where('isDelete', 0)
             ->when($q !== '', fn($x) => $x->where(function ($w) use ($q) {
                 $w->where('title', 'like', "%{$q}%")
-                  ->orWhere('slug',  'like', "%{$q}%");
+                    ->orWhere('slug',  'like', "%{$q}%");
             }))
             ->when($categoryId > 0, fn($x) => $x->where('category_id', $categoryId))
             ->when($subcatId   > 0, fn($x) => $x->where('subcategory_id', $subcatId))
@@ -37,7 +38,12 @@ class DocumentController extends Controller
             ->withQueryString();
 
         return view('admin.document.index', compact(
-            'list', 'q', 'categoryId', 'subcatId', 'categories', 'subcategories'
+            'list',
+            'q',
+            'categoryId',
+            'subcatId',
+            'categories',
+            'subcategories'
         ));
     }
 
@@ -52,12 +58,12 @@ class DocumentController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title'          => ['required','string','max:200'],
-            'slug'           => ['nullable','string','max:200','unique:document,slug'],
-            'category_id'    => ['required', Rule::exists('category','iCategoryId')],
-            'subcategory_id' => ['required', Rule::exists('sub_category','iSubCategoryId')],
-            'file'           => ['required','file','mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,zip,jpg,jpeg,png,webp,gif','max:102400'], // 100MB
-            'iStatus'        => ['nullable','in:0,1'],
+            'title'          => ['required', 'string', 'max:200'],
+            'slug'           => ['nullable', 'string', 'max:200', 'unique:document,slug'],
+            'category_id'    => ['required', Rule::exists('category', 'iCategoryId')],
+            'subcategory_id' => ['required', Rule::exists('sub_category', 'iSubCategoryId')],
+            'file'           => ['required', 'file', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,zip,jpg,jpeg,png,webp,gif', 'max:102400'], // 100MB
+            'iStatus'        => ['nullable', 'in:0,1'],
         ]);
 
         // upload via helper -> store relative path into `document`
@@ -102,12 +108,12 @@ class DocumentController extends Controller
     public function update(Request $request, Document $document)
     {
         $data = $request->validate([
-            'title'          => ['required','string','max:200'],
-            'slug'           => ['nullable','string','max:200', Rule::unique('document','slug')->ignore($document->document_id, 'document_id')],
-            'category_id'    => ['required', Rule::exists('category','iCategoryId')],
-            'subcategory_id' => ['required', Rule::exists('sub_category','iSubCategoryId')],
-            'file'           => ['nullable','file','mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,zip,jpg,jpeg,png,webp,gif','max:102400'],
-            'iStatus'        => ['nullable','in:0,1'],
+            'title'          => ['required', 'string', 'max:200'],
+            'slug'           => ['nullable', 'string', 'max:200', Rule::unique('document', 'slug')->ignore($document->document_id, 'document_id')],
+            'category_id'    => ['required', Rule::exists('category', 'iCategoryId')],
+            'subcategory_id' => ['required', Rule::exists('sub_category', 'iSubCategoryId')],
+            'file'           => ['nullable', 'file', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,txt,csv,zip,jpg,jpeg,png,webp,gif', 'max:102400'],
+            'iStatus'        => ['nullable', 'in:0,1'],
         ]);
 
         if ($request->hasFile('file')) {
@@ -146,26 +152,53 @@ class DocumentController extends Controller
 
     public function destroy(Document $document)
     {
-        // soft delete (logical)
-        $document->isDelete = 1;
-        $document->save();
+        // 1) delete file first (if any)
+        if (!empty($document->document)) {
+            try {
+                anx_delete($document->document);
+            } catch (\Throwable $e) {
+            }
+        }
 
-        // If you want *hard* delete + file removal, do this instead:
-        // anx_delete($document->document);
-        // $document->delete();
+        // 2) set soft-delete flag WITHOUT triggering updating hooks
+        // Option A (Laravel 9+): saveQuietly
+        $document->forceFill(['isDelete' => 1])->saveQuietly();
+
+        // Option B: temporarily disable model events (any Laravel)
+        // \Illuminate\Database\Eloquent\Model::withoutEvents(function () use ($document) {
+        //     $document->update(['isDelete' => 1]);
+        // });
 
         return back()->with('success', 'Document deleted.');
     }
 
     public function bulkDelete(Request $request)
     {
-        $ids = (array) $request->input('ids', []);
-        if (!$ids) {
-            return back()->with('error', 'Select at least one row.');
+        // Accept ids from form-data OR JSON
+        $ids = $request->input('ids', $request->json('ids', []));
+        if (!is_array($ids) || count($ids) === 0) {
+            return response()->json(['status' => 'error', 'message' => 'No items selected'], 422);
         }
 
-        Document::whereIn('document_id', $ids)->update(['isDelete' => 1]);
+        // Delete images
+        $rows = Document::whereIn('document_id', $ids)->get(['document_id', 'document']);
+        foreach ($rows as $row) {
+            if (!empty($row->document) && function_exists('anx_delete')) {
+                try {
+                    anx_delete($row->document);
+                } catch (\Throwable $e) {
+                }
+            }
+        }
 
-        return back()->with('success', 'Selected documents deleted.');
+        // Soft delete rows
+        Document::whereIn('document_id', $ids)->update([
+            'isDelete'   => 1,
+            'updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Selected Document deleted.');
+
+        return response()->json(['status' => 'ok', 'deleted_ids' => $ids]);
     }
 }

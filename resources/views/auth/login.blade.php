@@ -8,7 +8,7 @@
         <div class="auth-page-wrapper">
             <!-- auth page bg -->
             <div class="auth-one-bg-position auth-one-bg" id="auth-particles">
-                
+
 
             </div>
 
@@ -39,7 +39,7 @@
                                     @endif
 
                                     <div class="p-2 mt-4">
-                                        <form method="POST" action="{{ route('login') }}">
+                                        <form method="POST" action="{{ route('admin.login.post') }}">
                                             @csrf
                                             <div class="mb-3">
                                                 <label for="username" class="form-label">Email</label>
@@ -99,7 +99,7 @@
                                 <p class="mb-0 text-muted">&copy;
                                     <script>
                                         document.write(new Date().getFullYear())
-                                    </script> {{env('APP_NAME')}}
+                                    </script> {{ env('APP_NAME') }}
                                 </p>
                             </div>
                         </div>

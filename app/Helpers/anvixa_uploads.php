@@ -49,9 +49,20 @@ if (! function_exists('anx_upload')) {
     {
         $allowed = $allowedExt ?: [
             // images
-            'jpg','jpeg','png','webp','gif',
+            'jpg',
+            'jpeg',
+            'png',
+            'webp',
+            'gif',
             // docs
-            'pdf','doc','docx','xls','xlsx','ppt','pptx','txt'
+            'pdf',
+            'doc',
+            'docx',
+            'xls',
+            'xlsx',
+            'ppt',
+            'pptx',
+            'txt'
         ];
 
         $ext = strtolower($file->getClientOriginalExtension());
@@ -66,7 +77,7 @@ if (! function_exists('anx_upload')) {
 
         $baseName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $slug     = Str::slug($baseName) ?: 'file';
-        $filename = uniqid().'-'.$slug.'.'.$ext;
+        $filename = uniqid() . '-' . $slug . '.' . $ext;
 
         $file->move($dirAbs, $filename);
 

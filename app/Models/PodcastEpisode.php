@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -8,9 +9,11 @@ class PodcastEpisode extends Model
 {
     protected $table = 'podcast_episode';
     protected $primaryKey = 'podcast_id';
+    protected $keyType = 'int';
     public $timestamps = true;
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
+
 
     protected $fillable = [
         'slug',
@@ -48,8 +51,8 @@ class PodcastEpisode extends Model
         $query = static::withoutGlobalScope('notDeleted');
         while (
             $query->where('slug', $slug)
-                  ->when($ignoreId, fn($q) => $q->where('podcast_id', '!=', $ignoreId))
-                  ->exists()
+            ->when($ignoreId, fn($q) => $q->where('podcast_id', '!=', $ignoreId))
+            ->exists()
         ) {
             $slug = $base . '-' . $i++;
         }

@@ -1,5 +1,5 @@
 <?php
-// app/Http/Controllers/Admin/VideoController.php
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -7,20 +7,20 @@ use App\Models\PodcastEpisode;
 use App\Models\Category;
 use App\Models\SubCategory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class PodcastController extends Controller
 {
     public function index(Request $request)
     {
-        $q = trim($request->get('q', ''));
-        $categoryId = (int)$request->get('category_id', 0);
-        $subcatId   = (int)$request->get('subcategory_id', 0);
+        $q          = trim($request->get('q', ''));
+        $categoryId = (int) $request->get('category_id', 0);
+        $subcatId   = (int) $request->get('subcategory_id', 0);
 
-        $categories = Category::orderBy('strCategoryName')->pluck('strCategoryName', 'iCategoryId');
+        $categories = Category::orderBy('strCategoryName')
+            ->pluck('strCategoryName', 'iCategoryId');
 
-        // Always pass all subcategories (not just filtered ones)
+        // Pass ALL subcategories (like GalleryController)
         $subcategories = SubCategory::orderBy('strSubCategoryName')
             ->pluck('strSubCategoryName', 'iSubCategoryId');
 
@@ -28,7 +28,7 @@ class PodcastController extends Controller
             ->when($q !== '', function ($x) use ($q) {
                 $x->where(function ($w) use ($q) {
                     $w->where('podcast_title', 'like', "%{$q}%")
-                      ->orWhere('video_link', 'like', "%{$q}%");
+                        ->orWhere('video_link', 'like', "%{$q}%");
                 });
             })
             ->when($categoryId > 0, fn($x) => $x->where('category_id', $categoryId))
@@ -36,15 +36,29 @@ class PodcastController extends Controller
             ->orderByDesc('podcast_id')
             ->paginate(15);
 
-        return view('admin.podcast.index', compact('list', 'q', 'categoryId', 'subcatId', 'categories', 'subcategories'));
+        return view('admin.podcast.index', compact(
+            'list',
+            'q',
+            'categoryId',
+            'subcatId',
+            'categories',
+            'subcategories'
+        ));
     }
 
+    public function show(int $id)
+    {
+        $row = PodcastEpisode::where('podcast_id', $id)->where('isDelete', 0)->firstOrFail();
+        // Mirror GalleryController pattern
+        $row->image_url = $row->image ? anx_url($row->image) : null; // <-- uses anx_url()
+        return response()->json($row);
+    }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'category_id'    => ['required', 'integer', Rule::exists('category','iCategoryId')],
-            'subcategory_id' => ['required', 'integer', Rule::exists('sub_category','iSubCategoryId')],
+            'category_id'    => ['required', 'integer', Rule::exists('category', 'iCategoryId')],
+            'subcategory_id' => ['required', 'integer', Rule::exists('sub_category', 'iSubCategoryId')],
             'podcast_title'    => ['required', 'string', 'max:200'],
             'video_link'     => ['required', 'string', 'max:200'],
             'image'          => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
@@ -52,11 +66,25 @@ class PodcastController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            // store under public/videos; requires `php artisan storage:link`
-            $data['image'] = $request->file('image')->store('videos', 'public');
+            $file = $request->file('image');
+            // If input name='image[]', take only the first one
+            if (is_array($file)) {
+                $file = $file[0];
+            }
+
+            // Upload and return path string
+            $path = anx_upload($file, 'podcasts');
+
+            // Make sure it's a string
+            if (is_array($path)) {
+                $path = $path['path'] ?? reset($path);
+            }
+
+            $data['image'] = (string) $path;
         }
 
-        $data['iStatus']  = (int)($data['iStatus'] ?? 1);
+
+        $data['iStatus']  = (int) ($data['iStatus'] ?? 1);
         $data['isDelete'] = 0;
 
         PodcastEpisode::create($data);
@@ -67,8 +95,8 @@ class PodcastController extends Controller
     public function update(Request $request, PodcastEpisode $podcast)
     {
         $data = $request->validate([
-            'category_id'    => ['required', 'integer', Rule::exists('category','iCategoryId')],
-            'subcategory_id' => ['required', 'integer', Rule::exists('sub_category','iSubCategoryId')],
+            'category_id'    => ['required', 'integer', Rule::exists('category', 'iCategoryId')],
+            'subcategory_id' => ['required', 'integer', Rule::exists('sub_category', 'iSubCategoryId')],
             'podcast_title'    => ['required', 'string', 'max:200'],
             'video_link'     => ['required', 'string', 'max:200'],
             'image'          => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
@@ -76,14 +104,25 @@ class PodcastController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            // delete old image if present
-            if ($podcast->image && Storage::disk('public')->exists($podcast->image)) {
-                Storage::disk('public')->delete($podcast->image);
+            $file = $request->file('image');
+            // If input name='image[]', take only the first one
+            if (is_array($file)) {
+                $file = $file[0];
             }
-            $data['image'] = $request->file('image')->store('videos', 'public');
+
+            // Upload and return path string
+            $path = anx_upload($file, 'podcasts');
+
+            // Make sure it's a string
+            if (is_array($path)) {
+                $path = $path['path'] ?? reset($path);
+            }
+
+            $data['image'] = (string) $path;
         }
 
-        $data['iStatus'] = (int)($data['iStatus'] ?? $podcast->iStatus);
+
+        $data['iStatus'] = (int) ($data['iStatus'] ?? $podcast->iStatus);
 
         $podcast->update($data);
 
@@ -92,32 +131,55 @@ class PodcastController extends Controller
 
     public function toggleStatus(PodcastEpisode $podcast)
     {
-        $podcast->iStatus = (int)!$podcast->iStatus;
+        $podcast->iStatus = (int) !$podcast->iStatus;
         $podcast->save();
 
         return back()->with('success', 'Status updated.');
     }
 
-    public function destroy(PodcastEpisode $podcast)
+    public function destroy(Request $request, $id)
     {
-        // soft delete flag
-        $podcast->isDelete = 1;
-        $podcast->save();
+        $podcast = PodcastEpisode::where('podcast_id', $id)->firstOrFail();
+
+        // remove physical image if present
+        if (!empty($podcast->image)) {
+            anx_delete($podcast->image); // same helper as Gallery
+        }
+
+        $podcast->update([
+            'isDelete'   => 1,
+            'updated_at' => now(),
+        ]);
 
         return back()->with('success', 'Podcast Episode deleted.');
     }
 
+
     public function bulkDelete(Request $request)
     {
-        $ids = $request->input('ids', []);
-        if (!is_array($ids) || empty($ids)) {
-            return back()->with('error', 'Select at least one row.');
+        // Accept ids from form-data OR JSON
+        $ids = $request->input('ids', $request->json('ids', []));
+        if (!is_array($ids) || count($ids) === 0) {
+            return response()->json(['status' => 'error', 'message' => 'No items selected'], 422);
         }
 
-        PodcastEpisode::withoutGlobalScope('notDeleted')
-            ->whereIn('podcast_id', $ids)
-            ->update(['isDelete' => 1]);
+        // Delete images
+        $rows = PodcastEpisode::whereIn('podcast_id', $ids)->get(['podcast_id', 'image']);
+        foreach ($rows as $row) {
+            if (!empty($row->image) && function_exists('anx_delete')) {
+                try {
+                    anx_delete($row->image);
+                } catch (\Throwable $e) {
+                }
+            }
+        }
 
-        return back()->with('success', 'Selected Podcast Episode deleted.');
+        // Soft delete rows
+        PodcastEpisode::whereIn('podcast_id', $ids)->update([
+            'isDelete'   => 1,
+            'updated_at' => now(),
+        ]);
+
+        return response()->json(['status' => 'ok', 'deleted_ids' => $ids]);
     }
 }
