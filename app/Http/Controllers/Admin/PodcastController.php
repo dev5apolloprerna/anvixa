@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -31,8 +30,8 @@ class PodcastController extends Controller
                         ->orWhere('video_link', 'like', "%{$q}%");
                 });
             })
-            ->when($categoryId > 0, fn($x) => $x->where('category_id', $categoryId))
-            ->when($subcatId > 0, fn($x) => $x->where('subcategory_id', $subcatId))
+            ->when($categoryId > 0, fn ($x) => $x->where('category_id', $categoryId))
+            ->when($subcatId > 0, fn ($x) => $x->where('subcategory_id', $subcatId))
             ->orderByDesc('podcast_id')
             ->paginate(15);
 
@@ -66,22 +65,22 @@ class PodcastController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            // If input name='image[]', take only the first one
-            if (is_array($file)) {
-                $file = $file[0];
+                $file = $request->file('image');
+                // If input name='image[]', take only the first one
+                if (is_array($file)) {
+                    $file = $file[0];
+                }
+
+                // Upload and return path string
+                $path = anx_upload($file, 'podcasts');
+
+                // Make sure it's a string
+                if (is_array($path)) {
+                    $path = $path['path'] ?? reset($path);
+                }
+
+                $data['image'] = (string) $path;
             }
-
-            // Upload and return path string
-            $path = anx_upload($file, 'podcasts');
-
-            // Make sure it's a string
-            if (is_array($path)) {
-                $path = $path['path'] ?? reset($path);
-            }
-
-            $data['image'] = (string) $path;
-        }
 
 
         $data['iStatus']  = (int) ($data['iStatus'] ?? 1);
@@ -104,22 +103,22 @@ class PodcastController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            // If input name='image[]', take only the first one
-            if (is_array($file)) {
-                $file = $file[0];
+                $file = $request->file('image');
+                // If input name='image[]', take only the first one
+                if (is_array($file)) {
+                    $file = $file[0];
+                }
+
+                // Upload and return path string
+                $path = anx_upload($file, 'podcasts');
+
+                // Make sure it's a string
+                if (is_array($path)) {
+                    $path = $path['path'] ?? reset($path);
+                }
+
+                $data['image'] = (string) $path;
             }
-
-            // Upload and return path string
-            $path = anx_upload($file, 'podcasts');
-
-            // Make sure it's a string
-            if (is_array($path)) {
-                $path = $path['path'] ?? reset($path);
-            }
-
-            $data['image'] = (string) $path;
-        }
 
 
         $data['iStatus'] = (int) ($data['iStatus'] ?? $podcast->iStatus);
@@ -137,7 +136,7 @@ class PodcastController extends Controller
         return back()->with('success', 'Status updated.');
     }
 
-    public function destroy(Request $request, $id)
+   public function destroy(Request $request, $id)
     {
         $podcast = PodcastEpisode::where('podcast_id', $id)->firstOrFail();
 
@@ -164,13 +163,10 @@ class PodcastController extends Controller
         }
 
         // Delete images
-        $rows = PodcastEpisode::whereIn('podcast_id', $ids)->get(['podcast_id', 'image']);
+        $rows = PodcastEpisode::whereIn('podcast_id', $ids)->get(['podcast_id','image']);
         foreach ($rows as $row) {
             if (!empty($row->image) && function_exists('anx_delete')) {
-                try {
-                    anx_delete($row->image);
-                } catch (\Throwable $e) {
-                }
+                try { anx_delete($row->image); } catch (\Throwable $e) {}
             }
         }
 
@@ -182,4 +178,5 @@ class PodcastController extends Controller
 
         return response()->json(['status' => 'ok', 'deleted_ids' => $ids]);
     }
+
 }
