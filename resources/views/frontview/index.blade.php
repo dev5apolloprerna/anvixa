@@ -22,10 +22,11 @@
                             <a href="#" target="_blank" class="btn btn-primary  custom-btn-red me-3">
                                 Explore Services
                             </a>
-                            <a href="#" class="btn btn-outline-light  custom-btn-outline-orange">
+                            <a href="{{ route('front.about') }}" class="btn btn-outline-light  custom-btn-outline-orange">
                                 About Us &rarr;
                             </a>
-                            <a href="#" class="btn btn-outline-light custom-btn-outline-orange mt-2 mt-md-0">
+                            <a href="{{ route('front.video') }}"
+                                class="btn btn-outline-light custom-btn-outline-orange mt-2 mt-md-0">
                                 View All Videos & Resources &rarr;
                             </a>
                         </div>
@@ -100,7 +101,7 @@
                         <div class="spotlight-body">
                             <h5 class="card-title text-danger">🎬 Video Lecture</h5>
                             <p class="card-text fw-bold">Basics of Public Health Research</p>
-                            <a href="#" class="btn spotlight-btn-red">
+                            <a href="{{ route('front.video') }}" class="btn spotlight-btn-red">
                                 <i class="fas fa-play me-2"></i> Watch Full Library
                             </a>
                         </div>
@@ -120,7 +121,7 @@
                         <div class="spotlight-body">
                             <h5 class="card-title text-warning">🎧 Podcast Episode</h5>
                             <p class="card-text fw-bold">Preventive Medicine in Today's India</p>
-                            <a href="#" class="btn spotlight-btn-orange">
+                            <a href="{{ route('front.podcast') }}" class="btn spotlight-btn-orange">
                                 <i class="fas fa-headphones-alt me-2"></i> Full Podcast Library
                             </a>
                         </div>
@@ -140,7 +141,7 @@
                         <div class="spotlight-body">
                             <h5 class="card-title text-success">🤝 Community Activity</h5>
                             <p class="card-text fw-bold">Adolescent Nutrition Awareness Drive</p>
-                            <a href="#" class="btn spotlight-btn-green">
+                            <a href="{{ route('front.gallery') }}" class="btn spotlight-btn-green">
                                 <i class="fas fa-images me-2"></i> Photo/Video Gallery
                             </a>
                         </div>

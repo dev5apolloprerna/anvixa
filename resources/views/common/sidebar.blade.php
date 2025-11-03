@@ -1,10 +1,8 @@
-<?php 
-if(auth()->user())
-{
-$roleid = auth()->user()->role_id;
-}else{
-
-$roleid = Auth::guard('web_employees')->user()->role_id;
+<?php
+if (auth()->user()) {
+    $roleid = auth()->user()->role_id;
+} else {
+    $roleid = Auth::guard('web_employees')->user()->role_id;
 }
 ?>
 <!-- ========== App Menu ========== -->
@@ -14,15 +12,14 @@ $roleid = Auth::guard('web_employees')->user()->role_id;
             <div id="two-column-menu"></div>
             <ul class="navbar-nav" id="navbar-nav">
                 <li class="menu-title"><span data-key="t-menu"></span></li>
-                 <li class="nav-item">
+                <li class="nav-item">
                     <a class="nav-link menu-link @if (request()->routeIs('home')) {{ 'active' }} @endif"
                         href="{{ route('home') }}">
                         <i class="mdi mdi-speedometer"></i>
                         <span data-key="t-dashboards">Dashboards</span>
                     </a>
                 </li>
-                @if($roleid == '1' && $roleid != '2')
-                   
+                @if ($roleid == '1' && $roleid != '2')
                     <!-- Category -->
                     <li class="nav-item">
                         <a class="nav-link menu-link @if (request()->routeIs('admin.category.*')) active @endif"
@@ -31,7 +28,7 @@ $roleid = Auth::guard('web_employees')->user()->role_id;
                             <span data-key="t-category">Category</span>
                         </a>
                     </li>
-                 
+
                     <!-- Sub Category -->
                     <li class="nav-item">
                         <a class="nav-link menu-link @if (request()->routeIs('admin.sub-category.*')) active @endif"
@@ -40,38 +37,40 @@ $roleid = Auth::guard('web_employees')->user()->role_id;
                             <span data-key="t-sub-category">Sub Category</span>
                         </a>
                     </li>
-                     <li class="nav-item">
-                      <a class="nav-link" href="{{ route('admin.video.index') }}">
-                        <i class="fas fa-video"></i>
-                        <span>Video Master</span>
-                      </a>
+                    <li class="nav-item">
+                        <a class="nav-link @if (request()->routeIs('admin.video.*')) active @endif"
+                            href="{{ route('admin.video.index') }}">
+                            <i class="fas fa-video"></i>
+                            <span>Video Master</span>
+                        </a>
                     </li>
                     <li class="nav-item">
-                          <a class="nav-link" href="{{ route('admin.podcast.index') }}">
+                        <a class="nav-link @if (request()->routeIs('admin.podcast.*')) active @endif"
+                            href="{{ route('admin.podcast.index') }}">
                             <i class="fas fa-podcast"></i>
                             <span>Podcast Episodes</span>
-                          </a>
+                        </a>
                     </li>
-                     <li class="nav-item">
-                      <a class="nav-link" href="{{ route('admin.gallery.index') }}">
-                        <i class="fas fa-images"></i> <span>Gallery</span>
-                      </a>
+                    <li class="nav-item">
+                        <a class="nav-link @if (request()->routeIs('admin.gallery.*')) active @endif"
+                            href="{{ route('admin.gallery.index') }}">
+                            <i class="fas fa-images"></i> <span>Gallery</span>
+                        </a>
                     </li>
 
                     <li class="nav-item">
-                      <a class="nav-link" href="{{ route('admin.document.index') }}">
-                        <i class="fas fa-file-alt me-2"></i>Documents
-                      </a>
+                        <a class="nav-link @if (request()->routeIs('admin.document.*')) active @endif"
+                            href="{{ route('admin.document.index') }}">
+                            <i class="fas fa-file-alt me-2"></i>Documents
+                        </a>
                     </li>
-                     <li class="nav-item">
-                                <a class="nav-link menu-link @if (request()->routeIs('Inquiry.index')) {{ 'active' }} @endif"
-                                    href="{{ route('Inquiry.index') }}">
-                                    <i class="fa-solid fa-circle-question"></i>
-                                    <span data-key="t-dashboards">Inquiry</span>
-                                </a>
-                            </li>
-                            
-
+                    <li class="nav-item">
+                        <a class="nav-link menu-link @if (request()->routeIs('Inquiry.index')) {{ 'active' }} @endif"
+                            href="{{ route('Inquiry.index') }}">
+                            <i class="fa-solid fa-circle-question"></i>
+                            <span data-key="t-dashboards">Inquiry</span>
+                        </a>
+                    </li>
                 @endif
             </ul>
         </div>

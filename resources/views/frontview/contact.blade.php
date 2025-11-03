@@ -20,30 +20,52 @@
                         <h3 class="fw-bold text-center text-danger mb-3">Get in Touch</h3>
                         <p class="text-center text-muted mb-4">We’d love to hear from you — drop us a message below.</p>
 
-                        <form id="contactForm" class="needs-validation" novalidate>
+                        <form method="POST" action="{{ route('front.contact_us_store') }}" id="contactForm"
+                            class="needs-validation">
+                            @csrf
+
                             <div class="mb-3">
                                 <label for="name" class="form-label fw-semibold">Full Name</label>
-                                <input type="text" class="form-control rounded-3" id="name" placeholder="Your Name"
-                                    required>
+                                <input type="text" name="name" class="form-control rounded-3" id="name"
+                                    placeholder="Your Name" required autocomplete="off" value="{{ old('name') }}">
                                 <div class="invalid-feedback">Please enter your name.</div>
                             </div>
 
                             <div class="mb-3">
                                 <label for="email" class="form-label fw-semibold">Email Address</label>
-                                <input type="email" class="form-control rounded-3" id="email"
-                                    placeholder="your@email.com" required>
+                                <input type="email" name="email" class="form-control rounded-3" id="email"
+                                    placeholder="your@email.com" required autocomplete="off" value="{{ old('email') }}">
                                 <div class="invalid-feedback">Please enter a valid email.</div>
                             </div>
 
                             <div class="mb-3">
                                 <label for="subject" class="form-label fw-semibold">Subject</label>
-                                <input type="text" class="form-control rounded-3" id="subject" placeholder="Subject"
-                                    required>
+                                <input type="text" name="subject" class="form-control rounded-3" id="subject"
+                                    placeholder="Subject" required autocomplete="off" value="{{ old('subject') }}">
                             </div>
 
                             <div class="mb-3">
                                 <label for="message" class="form-label fw-semibold">Message</label>
-                                <textarea class="form-control rounded-3" id="message" rows="4" placeholder="Write your message..." required></textarea>
+                                <textarea name="message" class="form-control rounded-3" id="message" rows="4"
+                                    placeholder="Write your message..." autocomplete="off" required>{{ old('message') }}</textarea>
+                            </div>
+
+                            <div class="form-group{{ $errors->has('captcha') ? ' has-error' : '' }}">
+                                <div class="form-group mt-4 mb-4">
+                                    <div class="captcha">
+                                        <span>{!! captcha_img() !!}</span>
+                                        <button type="button" class="btn btn-danger" class="reload" id="reload">
+                                            &#x21bb;
+                                        </button>
+                                    </div>
+                                </div>
+                                <input id="captcha" type="text" class="form-control" placeholder="Enter Captcha"
+                                    name="captcha" required>
+                                @if ($errors->has('captcha'))
+                                    <span class="help-block">
+                                        <strong class="">{{ $errors->first('captcha') }}</strong>
+                                    </span>
+                                @endif
                             </div>
 
                             <div class="d-grid">
@@ -88,4 +110,21 @@
         </div>
     </section>
 
+@endsection
+
+
+@section('scripts')
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+
+    <script type="text/javascript">
+        $('#reload').click(function() {
+            $.ajax({
+                type: 'GET',
+                url: 'refresh_captcha',
+                success: function(data) {
+                    $(".captcha span").html(data.captcha);
+                }
+            });
+        });
+    </script>
 @endsection

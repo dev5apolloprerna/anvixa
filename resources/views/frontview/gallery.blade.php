@@ -47,11 +47,13 @@
 
                                         <!-- Resource Type -->
                                         <div class="col-md-3">
-                                            <select id="filterType" class="form-select">
-                                                <option value="all">type of activity</option>
-                                                <option value="video">health screenings</option>
-                                                <option value="podcast">awareness campaigns</option>
-                                                <option value="gallery">youth programs</option>
+                                            <select name="subcategory_id" id="filterType" class="form-select">
+                                                <option value=""> ---- Select ---- </option>
+                                                @foreach ($sub_categories as $sub_category)
+                                                    <option value="{{ $sub_category->iSubCategoryId }}">
+                                                        {{ $sub_category->strSubCategoryName }}
+                                                    </option>
+                                                @endforeach
 
                                             </select>
                                         </div>
@@ -73,15 +75,14 @@
 
                             @foreach ($galleries as $gallery)
                                 <div class="col-md-4 resource-item" data-topic="{{ $gallery->title }}">
-                                    <img src="{{ asset('anvixa/' . $gallery->image) }}"
-                                        class="img-fluid rounded-3 shadow-sm">
+                                    <img src="{{ asset($gallery->image) }}" class="img-fluid rounded-3 shadow-sm">
                                     <h5 class="mt-2 text-center">{{ $gallery->title }}</h5>
                                 </div>
                             @endforeach
 
                         </div>
 
-                        @if ($totalGallery > 1)
+                        @if ($totalGallery > count($galleries))
                             <div class="text-center mt-4">
                                 <button id="loadMoreBtn" class="btn custom-btn-red px-4 py-2"
                                     data-skip="{{ count($galleries) }}">
@@ -106,6 +107,52 @@
 @section('scripts')
     <script>
         $(document).ready(function() {
+            $('#searchBtn').click(function() {
+                var subcategory_id = $('#filterType').val();
+
+                // Reset the gallery
+                $('#galleryList').html(
+                    '<div class="text-center py-5"><i class="fas fa-spinner fa-spin fa-2x text-danger"></i></div>'
+                );
+
+                $.ajax({
+                    url: "{{ route('front.filterGallery') }}",
+                    type: "GET",
+                    data: {
+                        subcategory_id: subcategory_id,
+                        skip: 0,
+                        limit: 6
+                    },
+                    success: function(response) {
+                        $('#galleryList').empty();
+
+                        if (response.galleries && response.galleries.length > 0) {
+                            response.galleries.forEach(function(gallery) {
+                                var html = `
+                            <div class="col-md-4 resource-item" data-topic="${gallery.title}">
+                                <img src="/${gallery.image}" class="img-fluid rounded-3 shadow-sm">
+                                <h5 class="mt-2 text-center">${gallery.title}</h5>
+                            </div>
+                        `;
+                                $('#galleryList').append(html);
+                            });
+                        } else {
+                            $('#galleryList').html(
+                                '<div class="text-center py-5 text-muted">No images found for this category.</div>'
+                            );
+                        }
+                    },
+                    error: function() {
+                        $('#galleryList').html(
+                            '<div class="text-center py-5 text-danger">Error loading gallery.</div>'
+                        );
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
             $('#loadMoreBtn').click(function() {
                 var skip = $(this).data('skip');
                 var limit = 6;
@@ -126,7 +173,7 @@
                                 var galleryHtml = `
                         <div class="col-md-4 resource-item" data-aos="zoom-in" data-aos-delay="100">
                             <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
-                                <img src="/anvixa/${gallery.image}" class="img-fluid" alt="${gallery.title}">
+                                <img src="/${gallery.image}" class="img-fluid" alt="${gallery.title}">
                                 <div class="card-body text-center">
                                     <h6 class="fw-bold mb-0">${gallery.title}</h6>
                                 </div>

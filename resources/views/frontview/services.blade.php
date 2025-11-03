@@ -2,6 +2,24 @@
 @section('title', 'Services')
 @section('content')
 
+    <!-- Orange Header Section -->
+    <section class="py-5 text-white text-center" style="background: linear-gradient(90deg, #ff7b00, #ff4500);">
+        <div class="container">
+            <h1 class="display-5 fw-bold mb-2" data-aos="fade-up">Our Services</h1>
+            <p class="lead text-white-50" data-aos="fade-up" data-aos-delay="200">
+                Empowering health systems through education, research, and community engagement.
+            </p>
+            <nav aria-label="breadcrumb" data-aos="fade-up" data-aos-delay="300">
+                <ol class="breadcrumb justify-content-center mb-0">
+                    <li class="breadcrumb-item"><a href="{{ route('front.index') }}"
+                            class="text-white text-decoration-underline">Home</a>
+                    </li>
+                    <li class="breadcrumb-item active text-white" aria-current="page">Services</li>
+                </ol>
+            </nav>
+        </div>
+    </section>
+
     <!-- Services Section -->
     <section class="py-5 bg-light">
         <div class="container">
@@ -43,7 +61,8 @@
                         <li>Guest speakers and real-world case insights</li>
                         <li>Available across all major platforms</li>
                     </ul>
-                    <a href="{{ route('front.video') }}" class="btn btn-outline-light custom-btn-outline-orange">Listen Now
+                    <a href="{{ route('front.podcast') }}" class="btn btn-outline-light custom-btn-outline-orange">Listen
+                        Now
                         →</a>
                 </div>
             </div>

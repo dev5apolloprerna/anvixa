@@ -44,7 +44,7 @@
                             <div class="card-header d-flex justify-content-between">
                                 <h4 class="card-title mb-0">Category Listing</h4>
                                 <button type="button" id="bulkDeleteBtn" class="btn btn-danger btn-sm">
-                                    <i class="fas fa-trash"></i> Delete All
+                                    <i class="fas fa-trash"></i> Delete Selected Record
                                 </button>
                             </div>
                             <div class="card-body">
@@ -154,7 +154,7 @@
             $('#editStrCategoryName').val(name);
             $('#editStrSlug').val(slug);
 
-            $('#editCategoryForm').attr('action', '/admin/category/' + id);
+            $('#editCategoryForm').attr('action', `{{ url('admin/category') }}/${id}`);
             $('#editCategoryModal').modal('show');
         });
 

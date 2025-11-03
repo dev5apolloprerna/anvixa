@@ -100,7 +100,7 @@
                                 <div class="d-flex justify-content-end mb-2">
                                     {{-- JS-only bulk delete; no form --}}
                                     <button type="button" class="btn btn-danger btn-sm" id="bulkDeleteBtn">
-                                        <i class="fas fa-trash"></i> Delete Selected
+                                        <i class="fas fa-trash"></i> Delete Selected Record
                                     </button>
                                 </div>
 
@@ -113,6 +113,7 @@
                                                 <th>Title</th>
                                                 <th>Slug</th>
                                                 <th>Category</th>
+                                                <th>Sub Category</th>
                                                 <th class="text-end">Action</th>
                                             </tr>
                                         </thead>
@@ -123,7 +124,7 @@
                                                             value="{{ $row->gallery_id }}"></td>
                                                     <td>
                                                         @if ($row->image)
-                                                            <img src="{{ asset('anvixa/' . $row->image) }}"
+                                                            <img src="{{ asset($row->image) }}"
                                                                 style="width:70px;height:50px;object-fit:cover;border-radius:4px;">
                                                         @else
                                                             —
@@ -133,9 +134,10 @@
                                                     <td>{{ $row->slug }}</td>
                                                     <td>
                                                         {{ $row->category->strCategoryName ?? '-' }}
+                                                    </td>
+                                                    <td>
                                                         @if ($row->subcategory)
-                                                            <br><small
-                                                                class="text-muted">{{ $row->subcategory->strSubCategoryName }}</small>
+                                                            {{ $row->subcategory->strSubCategoryName }}
                                                         @endif
                                                     </td>
                                                     <td class="text-end">
@@ -190,7 +192,8 @@
 
                                     <div class="row g-3">
                                         <div class="col-md-6">
-                                            <label class="form-label">Category</label>
+                                            <label class="form-label">Category <span
+                                                    class="text-danger">*</span></label></label>
                                             <select name="category_id" id="editCategoryId" class="form-control" required>
                                                 <option value="">Select Category</option>
                                                 @foreach ($categories as $id => $name)
@@ -199,7 +202,8 @@
                                             </select>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label">Sub Category</label>
+                                            <label class="form-label">Sub Category <span
+                                                    class="text-danger">*</span></label></label>
                                             <select name="subcategory_id" id="editSubcategoryId" class="form-control"
                                                 required>
                                                 <option value="">Select Sub Category</option>
@@ -209,7 +213,8 @@
                                             </select>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label">Title</label>
+                                            <label class="form-label">Title <span
+                                                    class="text-danger">*</span></label></label>
                                             <input type="text" id="editTitle" name="title" class="form-control"
                                                 required>
                                             <small class="text-muted">Slug: <span id="editSlugPreview"></span></small>
@@ -289,19 +294,54 @@
             });
 
             // Edit modal open
+            // Edit modal open
             $(document).on('click', '.edit-btn', function() {
                 const id = $(this).data('id');
+                const categoryId = $(this).data('category');
+                const subcategoryId = $(this).data('subcategory');
+                const title = $(this).data('title');
+
                 $('#editId').val(id);
-                $('#editTitle').val($(this).data('title'));
-                $('#editCategoryId').val($(this).data('category')).trigger('change');
-                $('#editSubcategoryId').val($(this).data('subcategory'));
+                $('#editTitle').val(title);
                 $('#editSlugPreview').text(
-                    String($(this).data('title') || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
-                        /^-+|-+$/g, '')
+                    String(title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
                 );
                 $('#editGalleryForm').attr('action', `{{ url('admin/gallery') }}/${id}`);
+
+                const catSelect = $('#editCategoryId');
+                const subSelect = $('#editSubcategoryId');
+
+                // Set category first
+                catSelect.val(categoryId);
+
+                // Now load subcategories dynamically before setting selected
+                subSelect.html('<option value="">Loading...</option>');
+
+                if (categoryId) {
+                    fetch(`{{ route('admin.fetch-subcategories', ':id') }}`.replace(':id', categoryId))
+                        .then(r => r.json())
+                        .then(data => {
+                            let opt = '<option value="">Select Sub Category</option>';
+                            data.forEach(sc => {
+                                opt +=
+                                    `<option value="${sc.iSubCategoryId}">${sc.strSubCategoryName}</option>`;
+                            });
+                            subSelect.html(opt);
+
+                            // ✅ Now safely set subcategory value after options loaded
+                            subSelect.val(subcategoryId);
+                        })
+                        .catch(() => {
+                            subSelect.html('<option value="">Select Sub Category</option>');
+                        });
+                } else {
+                    subSelect.html('<option value="">Select Sub Category</option>');
+                }
+
+                // Finally show modal
                 $('#editGalleryModal').modal('show');
             });
+
 
             // Slug preview (edit)
             document.getElementById('editTitle')?.addEventListener('input', function() {

@@ -149,13 +149,18 @@ Route::get('/load-more-videos', [FrontController::class, 'loadMoreVideos'])->nam
 
 Route::get('/gallery', [FrontController::class, 'gallery'])->name('front.gallery');
 Route::get('/load-more-gallery', [FrontController::class, 'loadMoreGallery'])->name('front.loadMoreGallery');
+Route::get('/gallery/filter', [FrontController::class, 'filterGallery'])->name('front.filterGallery');
+
 
 Route::get('/podcast', [FrontController::class, 'podcast'])->name('front.podcast');
 Route::get('/load-more-podcasts', [FrontController::class, 'loadMorePodcasts'])->name('front.loadMorePodcasts');
 
 Route::get('/document', [FrontController::class, 'document'])->name('front.document');
 Route::get('/load-more-document', [FrontController::class, 'loadMoreDocuments'])->name('front.loadMoreDocuments');
+Route::get('/documents/filter', [FrontController::class, 'filterDocuments'])->name('front.filterDocuments');
+
 
 Route::get('/contact-us', [FrontController::class, 'contactus'])->name('front.contact_us');
 Route::post('/contact-us', [FrontController::class, 'contact_us_store'])->name('front.contact_us_store');
+Route::get('/Thank-You', [FrontController::class, 'contactthankyou'])->name('contactthankyou');
 Route::get('refresh_captcha', [FrontController::class, 'refreshCaptcha'])->name('refresh_captcha');

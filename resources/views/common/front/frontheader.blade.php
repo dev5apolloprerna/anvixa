@@ -10,10 +10,13 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link custom-nav-link" href="{{ route('front.index') }}">Home</a></li>
+                <li class="nav-item"><a
+                        class="nav-link custom-nav-link @if (request()->routeIs('front.index')) {{ 'active' }} @endif"
+                        href="{{ route('front.index') }}">Home</a></li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle custom-nav-link active" href="#" id="servicesDropdown"
-                        role="button" data-bs-toggle="dropdown" aria-expanded="false">Services</a>
+                    <a class="nav-link dropdown-toggle custom-nav-link @if (request()->routeIs('front.services')) {{ 'active' }} @endif"
+                        href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">Services</a>
                     <ul class="dropdown-menu custom-dropdown-menu" aria-labelledby="servicesDropdown">
                         <li><a class="dropdown-item custom-dropdown-item"
                                 href="{{ route('front.services') }}#video">Video
@@ -29,10 +32,16 @@
                                 Activities</a></li>
                     </ul>
                 </li>
-                <li class="nav-item"><a class="nav-link custom-nav-link" href="{{ route('front.about') }}">About Us</a>
+                <li class="nav-item"><a
+                        class="nav-link custom-nav-link @if (request()->routeIs('front.about')) {{ 'active' }} @endif"
+                        href="{{ route('front.about') }}">About Us</a>
                 </li>
-                <li class="nav-item"><a class="nav-link custom-nav-link" href="video.html">Resources</a></li>
-                <li class="nav-item"><a class="nav-link custom-nav-link"
+                <li class="nav-item">
+                    <a class="nav-link custom-nav-link @if (request()->routeIs('front.video')) {{ 'active' }} @endif"
+                        href="{{ route('front.video') }}">Resources</a>
+                </li>
+                <li class="nav-item"><a
+                        class="nav-link custom-nav-link @if (request()->routeIs('front.contact_us')) {{ 'active' }} @endif"
                         href="{{ route('front.contact_us') }}">Contact</a></li>
             </ul>
         </div>

@@ -50,12 +50,6 @@
                                             20MB)</small>
                                     </div>
 
-
-                                    <!--  <div class="form-check form-switch mb-3">
-                              <input class="form-check-input" type="checkbox" id="iStatus" name="iStatus" value="1" checked>
-                              <label class="form-check-label" for="iStatus">Active</label>
-                            </div> -->
-
                                     <div class="d-flex gap-2">
                                         <button class="btn btn-primary">Submit</button>
                                         <button type="reset" class="btn btn-light">Clear</button>
@@ -105,8 +99,9 @@
                                     <form method="POST" id="bulkDeleteForm"
                                         action="{{ route('admin.document.bulk-delete') }}">
                                         @csrf
-                                        <button type="submit" class="btn btn-danger btn-sm" id="bulkDeleteBtn"><i
-                                                class="fas fa-trash"></i> Delete All</button>
+                                        <button type="submit" class="btn btn-danger btn-sm" id="bulkDeleteBtn">
+                                            <i class="fas fa-trash"></i> Delete Selected Record
+                                        </button>
                                     </form>
                                 </div>
 
@@ -117,8 +112,9 @@
                                                 <th style="width:32px"><input type="checkbox" id="selectAll"></th>
                                                 <th>Image</th>
                                                 <th>Title</th>
-                                                <th>Slug</th>
+                                                {{--  <th>Slug</th>  --}}
                                                 <th>Category</th>
+                                                <th>Sub Category</th>
                                                 <!-- <th>Status</th> -->
                                                 <th class="text-end">Action</th>
                                             </tr>
@@ -130,31 +126,25 @@
                                                             value="{{ $row->document_id }}"></td>
                                                     <td>
                                                         @if ($row->document)
-                                                            <a href="{{ asset('anvixa/' . $row->document) }}"
-                                                                target="_blank" class="btn btn-sm btn-outline-primary">
+                                                            <a href="{{ asset($row->document) }}" target="_blank"
+                                                                class="btn btn-sm btn-outline-primary">
                                                                 <i class="fas fa-download me-1"></i> View / Download
                                                             </a>
-                                                            <div><small
-                                                                    class="text-muted">{{ basename($row->document) }}</small>
-                                                            </div>
                                                         @else
                                                             —
                                                         @endif
                                                     </td>
                                                     <td>{{ $row->title }}</td>
-                                                    <td>{{ $row->slug }}</td>
+                                                    {{--  <td>{{ $row->slug }}</td>  --}}
                                                     <td>
                                                         {{ $row->category->strCategoryName ?? '-' }}
+                                                    </td>
+                                                    <td>
                                                         @if ($row->subcategory)
-                                                            <br><small
-                                                                class="text-muted">{{ $row->subcategory->strSubCategoryName }}</small>
+                                                            {{ $row->subcategory->strSubCategoryName }}
                                                         @endif
                                                     </td>
-                                                    <!-- <td>
-                                      <span class="badge {{ $row->iStatus ? 'bg-success' : 'bg-secondary' }}">
-                                        {{ $row->iStatus ? 'Active' : 'Inactive' }}
-                                      </span>
-                                    </td> -->
+
                                                     <td class="text-end">
                                                         <button type="button" class="btn btn-sm btn-warning edit-btn"
                                                             data-id="{{ $row->document_id }}"
@@ -175,12 +165,6 @@
                                                             </button>
                                                         </form>
 
-                                                        <!--  <form method="POST" action="{{ route('admin.document.toggle-status', $row->document_id) }}" class="d-inline">
-                                        @csrf @method('PATCH')
-                                        <button class="btn btn-sm btn-outline-dark">
-                                          {{ $row->iStatus ? 'Deactivate' : 'Activate' }}
-                                        </button>
-                                      </form> -->
                                                     </td>
                                                 </tr>
                                             @empty
@@ -214,9 +198,9 @@
 
                                     <div class="row g-3">
 
-
                                         <div class="col-md-6">
-                                            <label class="form-label">Category</label>
+                                            <label class="form-label">Category <span
+                                                    class="text-danger">*</span></label></label>
                                             <select name="category_id" id="editCategoryId" class="form-control" required>
                                                 <option value="">Select Category</option>
                                                 @foreach ($categories as $id => $name)
@@ -226,7 +210,8 @@
                                         </div>
 
                                         <div class="col-md-6">
-                                            <label class="form-label">Sub Category</label>
+                                            <label class="form-label">Sub Category <span
+                                                    class="text-danger">*</span></label></label>
                                             <select name="subcategory_id" id="editSubcategoryId" class="form-control"
                                                 required>
                                                 <option value="">Select Sub Category</option>
@@ -236,7 +221,8 @@
                                             </select>
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label">Title</label>
+                                            <label class="form-label">Title <span
+                                                    class="text-danger">*</span></label></label>
                                             <input type="text" id="editTitle" name="title" class="form-control"
                                                 required>
                                             <small class="text-muted">Slug: <span id="editSlugPreview"></span></small>
@@ -249,13 +235,7 @@
                                                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip">
                                             <small class="text-muted">Leave empty to keep existing.</small>
                                         </div>
-                                        <!--  <div class="col-md-6">
-                                <label class="form-label">Status</label>
-                                <select name="iStatus" id="editStatus" class="form-control">
-                                  <option value="1">Active</option>
-                                  <option value="0">Inactive</option>
-                                </select>
-                              </div> -->
+
                                     </div>
                                 </div>
                                 <div class="modal-footer d-flex">
@@ -303,21 +283,48 @@
                 $('input[name="ids[]"]').prop('checked', this.checked);
             });
 
-            // Edit modal open (fill from data-*)
             $(document).on('click', '.edit-btn', function() {
                 const id = $(this).data('id');
+                const categoryId = $(this).data('category');
+                const subcategoryId = $(this).data('subcategory');
+
                 $('#editId').val(id);
                 $('#editTitle').val($(this).data('title'));
-                $('#editCategoryId').val($(this).data('category')).trigger('change');
-                $('#editSubcategoryId').val($(this).data('subcategory'));
-                $('#editStatus').val($(this).data('status'));
                 $('#editSlugPreview').text(
-                    String($(this).data('title') || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(
-                        /^-+|-+$/g, '')
+                    String($(this).data('title') || '')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '')
                 );
+
                 $('#editDocumentForm').attr('action', `{{ url('admin/document') }}/${id}`);
+
+                // Load subcategories first, then set the subcategory value
+                $('#editCategoryId').val(categoryId);
+                const subSelect = $('#editSubcategoryId');
+                subSelect.html('<option value="">Loading...</option>');
+
+                if (categoryId) {
+                    fetch(`{{ route('admin.fetch-subcategories', ':id') }}`.replace(':id', categoryId))
+                        .then(r => r.json())
+                        .then(data => {
+                            let opt = '<option value="">Select Sub Category</option>';
+                            data.forEach(sc => {
+                                opt +=
+                                    `<option value="${sc.iSubCategoryId}">${sc.strSubCategoryName}</option>`;
+                            });
+                            subSelect.html(opt);
+                            // ✅ Now set subcategory value after options exist
+                            subSelect.val(subcategoryId);
+                        })
+                        .catch(() => subSelect.html('<option value="">Select Sub Category</option>'));
+                } else {
+                    subSelect.html('<option value="">Select Sub Category</option>');
+                }
+
                 $('#editDocumentModal').modal('show');
             });
+
 
             // Slug preview (edit)
             document.getElementById('editTitle')?.addEventListener('input', function() {
