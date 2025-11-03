@@ -41,6 +41,38 @@
                             <p class="text-center text-muted mb-5">Research publications, policy briefs, and field insights.
                             </p>
 
+                            <div class="row">
+                                <div class="py-5 bg-light border-bottom">
+
+                                    <form id="filterForm">
+                                        <div class="row justify-content-end g-3 align-items-end">
+
+                                            <!-- Resource Type -->
+                                            <div class="col-md-3">
+                                                <select name="subcategory_id" id="filterType" class="form-select">
+                                                    <option value=""> ---- Select ---- </option>
+                                                    @foreach ($sub_categories as $sub_category)
+                                                        <option value="{{ $sub_category->iSubCategoryId }}">
+                                                            {{ $sub_category->strSubCategoryName }}
+                                                        </option>
+                                                    @endforeach
+
+                                                </select>
+                                            </div>
+                                            <!-- Search Button (Themed) -->
+                                            <div class="col-md-2 d-grid">
+                                                <button type="button" id="searchBtn"
+                                                    class="btn custom-btn-red fw-semibold">
+                                                    <i class="fas fa-search me-2"></i>
+                                                </button>
+                                            </div>
+
+                                        </div>
+                                    </form>
+                                </div>
+
+                            </div>
+
                             <div class="row g-4 justify-content-center" id="documentList">
 
                                 <!-- Document 1 -->
@@ -52,9 +84,6 @@
                                             <h6 class="fw-bold mb-2">
                                                 <i class="fas fa-file-pdf text-danger me-2"></i>{{ $document->title }}
                                             </h6>
-                                            {{--  <p class="text-muted small mb-3">
-                                                {{ $document->title }}
-                                            </p>  --}}
                                             <a target="_blank" href="{{ $document->document }}"
                                                 class="btn btn-outline-danger btn-sm">
                                                 <i class="fas fa-download me-2"></i>Download PDF
@@ -66,7 +95,7 @@
                             </div>
 
 
-                            @if ($total_documents > 1)
+                            @if ($total_documents > count($documents))
                                 <div class="text-center mt-4">
                                     <button id="loadMoreBtn" class="btn custom-btn-red px-4 py-2"
                                         data-skip="{{ count($documents) }}">
@@ -90,6 +119,63 @@
 @section('scripts')
     <script>
         $(document).ready(function() {
+
+            // 🔍 Filter Button Click
+            $('#searchBtn').click(function() {
+                var subcategory_id = $('#filterType').val();
+                var limit = 6;
+
+                $('#documentList').html(
+                    '<div class="text-center py-5"><i class="fas fa-spinner fa-spin fa-2x text-danger"></i><p>Loading...</p></div>'
+                );
+
+                $.ajax({
+                    url: "{{ route('front.filterDocuments') }}",
+                    method: 'GET',
+                    data: {
+                        subcategory_id: subcategory_id,
+                        skip: 0,
+                        limit: limit
+                    },
+                    success: function(response) {
+                        $('#documentList').empty();
+
+                        if (response.documents.length > 0) {
+                            response.documents.forEach(function(document) {
+                                var documentHtml = `
+                                <div class="col-md-4 resource-item" data-topic="${document.title}">
+                                    <div class="card p-3 shadow-sm border-0 rounded-3 h-100">
+                                        <img src="{{ asset('assets/front/img/images.jpeg') }}"
+                                            class="img-fluid rounded-3 mb-3" alt="${document.title}">
+                                        <h6 class="fw-bold mb-2">
+                                            <i class="fas fa-file-pdf text-danger me-2"></i>${document.title}
+                                        </h6>
+                                        <a target="_blank" href="${document.document}"
+                                            class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-download me-2"></i>Download PDF
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+                                $('#documentList').append(documentHtml);
+                            });
+
+                            // Reset "Load More" button
+                            $('#loadMoreBtn').data('skip', response.documents.length);
+                            $('#loadMoreBtn').prop('disabled', false).text(
+                                'Browse More Documents');
+                        } else {
+                            $('#documentList').html(
+                                '<p class="text-center text-muted">No documents found.</p>');
+                            $('#loadMoreBtn').prop('disabled', true).text('No more documents');
+                        }
+                    },
+                    error: function() {
+                        alert('Error filtering documents.');
+                    }
+                });
+            });
+
             $('#loadMoreBtn').click(function() {
                 var skip = $(this).data('skip');
                 var limit = 6; // Number of documents per request

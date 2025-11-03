@@ -54,61 +54,61 @@
                             <div class="card-header d-flex justify-content-between">
                                 <h4 class="card-title mb-0">Sub Category Listing</h4>
                                 <button type="button" id="bulkDeleteBtn" class="btn btn-danger btn-sm">
-                                    <i class="fas fa-trash"></i> Delete All
+                                    <i class="fas fa-trash"></i> Delete Selected Record
                                 </button>
                             </div>
                             <div class="card-body">
-                                <form method="POST" id="bulkDeleteForm"
+                                {{--  <form method="POST" id="bulkDeleteForm"
                                     action="{{ route('admin.sub-category.bulk-delete') }}">
-                                    @csrf
-                                    <table class="table table-bordered table-striped table-hover">
-                                        <thead>
+                                    @csrf  --}}
+                                <table class="table table-bordered table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                <input type="checkbox" id="selectAll">
+                                            </th>
+                                            <th>Category</th>
+                                            <th>Sub Category Name</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($subcategories as $subcategory)
                                             <tr>
-                                                <th>
-                                                    <input type="checkbox" id="selectAll">
-                                                </th>
-                                                <th>Category</th>
-                                                <th>Sub Category Name</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @forelse($subcategories as $subcategory)
-                                                <tr>
-                                                    <td>
-                                                        <input type="checkbox" name="ids[]"
-                                                            value="{{ $subcategory->iSubCategoryId }}">
-                                                    </td>
-                                                    <td>{{ $subcategory->category->strCategoryName ?? '-' }}</td>
-                                                    <td>{{ $subcategory->strSubCategoryName }}</td>
-                                                    <td>
-                                                        <button type="button" class="btn btn-sm btn-warning edit-btn"
-                                                            data-id="{{ $subcategory->iSubCategoryId }}"
-                                                            data-category="{{ $subcategory->iCategoryId }}"
-                                                            data-name="{{ $subcategory->strSubCategoryName }}"
-                                                            data-slug="{{ $subcategory->strSlug }}">
-                                                            <i class="fas fa-edit"></i>
+                                                <td>
+                                                    <input type="checkbox" name="ids[]"
+                                                        value="{{ $subcategory->iSubCategoryId }}">
+                                                </td>
+                                                <td>{{ $subcategory->category->strCategoryName ?? '-' }}</td>
+                                                <td>{{ $subcategory->strSubCategoryName }}</td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-warning edit-btn"
+                                                        data-id="{{ $subcategory->iSubCategoryId }}"
+                                                        data-category="{{ $subcategory->iCategoryId }}"
+                                                        data-name="{{ $subcategory->strSubCategoryName }}"
+                                                        data-slug="{{ $subcategory->strSlug }}">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <form method="POST"
+                                                        action="{{ route('admin.sub-category.destroy', $subcategory->iSubCategoryId) }}"
+                                                        style="display:inline;">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                            onclick="return confirm('Are you sure you want to delete this record?')">
+                                                            <i class="fas fa-trash"></i>
                                                         </button>
-                                                        <form method="POST"
-                                                            action="{{ route('admin.sub-category.destroy', $subcategory->iSubCategoryId) }}"
-                                                            style="display:inline;">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="btn btn-sm btn-danger"
-                                                                onclick="return confirm('Are you sure you want to delete this record?')">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
-                                            @empty
-                                                <tr>
-                                                    <td colspan="5">No records found.</td>
-                                                </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </form>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="5">No records found.</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                                {{--  </form>  --}}
 
                                 {{ $subcategories->links() }}
                             </div>
@@ -181,14 +181,37 @@
             $('#editStrSubCategoryName').val(name);
             $('#editStrSlug').val(slug);
 
-            $('#editSubCategoryForm').attr('action', '/admin/sub-category/' + id);
+            $('#editSubCategoryForm').attr('action', `{{ url('admin/sub-category') }}/${id}`);
             $('#editSubCategoryModal').modal('show');
         });
 
         // Bulk delete
         $('#bulkDeleteBtn').on('click', function() {
+            var ids = $('input[name="ids[]"]:checked').map(function() {
+                return $(this).val();
+            }).get();
+
+            if (ids.length === 0) {
+                alert("Please select at least one record to delete.");
+                return;
+            }
+
             if (confirm('Are you sure you want to delete selected records?')) {
-                $('#bulkDeleteForm').submit();
+                $.ajax({
+                    url: "{{ route('admin.sub-category.bulk-delete') }}",
+                    type: "POST",
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        ids: ids
+                    },
+                    success: function(response) {
+                        alert('Deleted successfully.');
+                        location.reload();
+                    },
+                    error: function(xhr) {
+                        alert('An error occurred.');
+                    }
+                });
             }
         });
 

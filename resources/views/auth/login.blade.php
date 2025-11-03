@@ -19,7 +19,8 @@
                         <div class="col-lg-12">
                             <div class="text-center mt-sm-5 mb-4 text-white-50">
                                 <div>
-                                    <img src="{{ asset('assets/images/logo.png') }}" alt="" height="70">
+                                    <img src="{{ asset('assets/front/img/Anviksha_logo final.png') }}" alt=""
+                                        height="70">
                                 </div>
                             </div>
                         </div>

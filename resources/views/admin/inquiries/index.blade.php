@@ -37,7 +37,7 @@
                                         <tr>
                                             <th scope="col">No</th>
                                             <th scope="col">Name</th>
-                                            <th scope="col">Mobile</th>
+                                            {{--  <th scope="col">Mobile</th>  --}}
                                             <th scope="col">Email</th>
                                             <th scope="col">Subject</th>
                                             <th scope="col">Action</th>
@@ -49,16 +49,17 @@
                                             <tr>
                                                 <td>{{ $i + $inquiries->perPage() * ($inquiries->currentPage() - 1) }}
                                                 <td>{{ $inquiry->name }}</td>
-                                                <td>{{ $inquiry->mobileNumber }}</td>
+                                                {{--  <td>{{ $inquiry->mobileNumber }}</td>  --}}
                                                 <td>{{ $inquiry->email }}</td>
                                                 <td>{{ $inquiry->subject }}</td>
                                                 <td>
                                                     <div class="gap-2">
 
-                                                    <a class="" href="{{route('Inquiry.view',[$inquiry->inquiry_id])}}" 
-                                                        title="View">
-                                                        <i class="fa fa-eye" aria-hidden="true"></i>
-                                                    </a>
+                                                        <a class=""
+                                                            href="{{ route('Inquiry.view', [$inquiry->inquiry_id]) }}"
+                                                            title="View">
+                                                            <i class="fa fa-eye" aria-hidden="true"></i>
+                                                        </a>
                                                         <a class="" href="#" data-bs-toggle="modal"
                                                             title="Delete" data-bs-target="#deleteRecordModal"
                                                             onclick="deleteData(<?= $inquiry->inquiry_id ?>);">

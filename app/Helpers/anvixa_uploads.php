@@ -7,30 +7,31 @@ use Illuminate\Support\Str;
 if (! function_exists('anx_target_root')) {
     /**
      * Pick the correct disk root for writes:
-     * - If live dir exists (../public_html/anvixa), use that
-     * - Else fallback to local public/anvixa
+     * - If live dir exists (../public_html/anviksha), use that
+     * - Else fallback to local public/anviksha
      */
     function anx_target_root(): string
     {
         $live = anvixa_base_path(); // from your snippet
+
         if (File::isDirectory($live)) {
             return $live;
         }
-        return public_path('anvixa');
+        return public_path('anviksha');
     }
 }
 
 if (! function_exists('anx_base_url')) {
     /**
      * Public base URL for the same content.
-     * Uses your anvixa_base_url(), and falls back to app url + /anvixa
+     * Uses your anvixa_base_url(), and falls back to app url + /anviksha
      */
     function anx_base_url(string $append = ''): string
     {
         $base = anvixa_base_url(); // from your snippet
         // If you're running locally and the above already resolves correctly, remove the fallback:
         if (!$base) {
-            $base = rtrim(config('app.url'), '/') . '/anvixa';
+            $base = rtrim(config('app.url'), '/') . '/anviksha';
         }
         return $append ? rtrim($base, '/') . '/' . ltrim($append, '/') : rtrim($base, '/');
     }
@@ -38,7 +39,7 @@ if (! function_exists('anx_base_url')) {
 
 if (! function_exists('anx_upload')) {
     /**
-     * Move an uploaded file to anvixa/uploads/{subdir}/{filename}
+     * Move an uploaded file to anviksha/uploads/{subdir}/{filename}
      * Returns array: [relative, url, filename, mime, size]
      *
      * @param UploadedFile $file
@@ -70,8 +71,9 @@ if (! function_exists('anx_upload')) {
             abort(422, "File type .$ext not allowed.");
         }
 
-        $root   = anx_target_root();                                 // filesystem root
-        $dirRel = 'uploads/' . trim($subdir, '/');                   // relative dir under anvixa
+        $root   = anx_target_root();
+
+        $dirRel = 'uploads/' . trim($subdir, '/');                   // relative dir under anviksha
         $dirAbs = rtrim($root, '/') . '/' . $dirRel;                 // absolute dir
         ensure_dir($dirAbs);                                         // from your snippet
 

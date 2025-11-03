@@ -107,7 +107,7 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-end mb-2">
                                     <button type="button" id="bulkDeleteBtn" class="btn btn-danger btn-sm">
-                                        <i class="fas fa-trash"></i> Delete All
+                                        <i class="fas fa-trash"></i> Delete Selected Record
                                     </button>
                                 </div>
 
@@ -134,7 +134,7 @@
                                                             value="{{ $row->podcast_id }}"></td>
                                                     <td>
                                                         @if ($row->image)
-                                                            <img src="{{ asset('anvixa/' . $row->image) }}"
+                                                            <img src="{{ asset($row->image) }}"
                                                                 style="width:70px;height:50px;object-fit:cover;border-radius:4px;">
                                                         @else
                                                             —

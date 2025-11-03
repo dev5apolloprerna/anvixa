@@ -108,7 +108,7 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-end mb-2">
                                     <button type="button" id="bulkDeleteBtn" class="btn btn-danger btn-sm">
-                                        <i class="fas fa-trash"></i> Delete All
+                                        <i class="fas fa-trash"></i> Delete Selected Record
                                     </button>
                                 </div>
 
@@ -137,7 +137,7 @@
                                                     </td>
                                                     <td>
                                                         @if ($row->image)
-                                                            <img src="{{ asset('anvixa/' . $row->image) }}"
+                                                            <img src="{{ asset($row->image) }}"
                                                                 style="width:70px;height:50px;object-fit:cover;border-radius:4px;">
                                                         @else
                                                             —
@@ -207,7 +207,7 @@
 
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">Category</label>
+                                <label class="form-label">Category <span class="text-danger">*</span></label>
                                 <select name="category_id" id="editCategoryId" class="form-control" required>
                                     <option value="">Select Category</option>
                                     @foreach ($categories as $id => $name)
@@ -217,7 +217,7 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label">Sub Category</label>
+                                <label class="form-label">Sub Category <span class="text-danger">*</span></label>
                                 <select name="subcategory_id" id="editSubcategoryId" class="form-control" required>
                                     {{-- We’ll just set by JS; you can also dynamically filter based on category --}}
                                     @foreach (\App\Models\SubCategory::orderBy('strSubCategoryName')->pluck('strSubCategoryName', 'iSubCategoryId') as $sid => $sname)
@@ -227,12 +227,12 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label">Title</label>
+                                <label class="form-label">Title <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="editTitle" name="video_title" required>
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label">Video Link</label>
+                                <label class="form-label">Video Link <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="editLink" name="video_link" required>
                             </div>
 
@@ -244,13 +244,13 @@
                             </div>
 
                             <!-- <div class="col-md-6">
-                  <label class="form-label d-block">Status</label>
-                  <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="editStatusSwitch">
-                    <label class="form-check-label" for="editStatusSwitch">Active</label>
-                  </div>
-                  <input type="hidden" name="iStatus" id="editStatus">
-                </div> -->
+                                      <label class="form-label d-block">Status</label>
+                                      <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="editStatusSwitch">
+                                        <label class="form-check-label" for="editStatusSwitch">Active</label>
+                                      </div>
+                                      <input type="hidden" name="iStatus" id="editStatus">
+                                    </div> -->
 
                         </div>
                     </div>
@@ -267,29 +267,31 @@
 @section('scripts')
     @include('common.footerjs')
     <script>
+        // Base route for fetching subcategories
+        const fetchSubcategoriesBase = "{{ route('admin.fetch-subcategories', ['category' => 'CATEGORY_ID']) }}";
+
+        // ===== Utility: CSRF Token =====
         function csrfToken() {
             const el = document.querySelector('meta[name="csrf-token"]');
             return el ? el.getAttribute('content') : '';
         }
 
-        function getSelectedIds() {
-            return Array.from(document.querySelectorAll('input.row-check:checked'))
-                .map(el => el.value);
+        function selectedIds() {
+            return Array.from(document.querySelectorAll('input.row-check:checked')).map(e => e.value);
         }
 
-        function removeRowsByIds(ids) {
+        function removeRows(ids) {
             ids.forEach(id => {
                 const tr = document.querySelector(`tr[data-row-id="${id}"]`);
                 if (tr) tr.remove();
             });
-            // also reset selectAll state
             const total = document.querySelectorAll('input.row-check').length;
             const sel = document.querySelectorAll('input.row-check:checked').length;
             const sa = document.getElementById('selectAll');
             if (sa) sa.checked = (total > 0 && sel === total);
         }
 
-        // === Edit modal fill (unchanged) ===
+        // ===== Edit modal fill =====
         $('.edit-btn').on('click', function() {
             const id = $(this).data('id');
             const cat = $(this).data('category');
@@ -298,22 +300,76 @@
             const link = $(this).data('link');
 
             $('#editVideoId').val(id);
-            $('#editCategoryId').val(cat);
-            $('#editSubcategoryId').val(sub);
             $('#editTitle').val(title);
             $('#editLink').val(link);
-
+            $('#editCategoryId').val(cat);
             $('#editVideoForm').attr('action', '{{ url('admin/video') }}/' + id);
+
+            const subSelect = $('#editSubcategoryId');
+            subSelect.html('<option value="">Loading...</option>');
+
+            // 🔹 Load subcategories dynamically based on category
+            if (cat) {
+                const url = fetchSubcategoriesBase.replace('CATEGORY_ID', cat);
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        let opt = '<option value="">Select Sub Category</option>';
+                        data.forEach(sc => {
+                            opt +=
+                                `<option value="${sc.iSubCategoryId}">${sc.strSubCategoryName}</option>`;
+                        });
+                        subSelect.html(opt);
+                        subSelect.val(sub); // Preselect current subcategory
+                    })
+                    .catch(() => subSelect.html('<option value="">Select Sub Category</option>'));
+            } else {
+                subSelect.html('<option value="">Select Sub Category</option>');
+            }
+
             $('#editVideoModal').modal('show');
         });
 
-        // === Bulk delete via AJAX ===
+        // ===== Update subcategories when category changes (Edit Modal) =====
+        $('#editCategoryId').on('change', function() {
+            const catId = $(this).val();
+            const subSelect = $('#editSubcategoryId');
+            subSelect.html('<option value="">Loading...</option>');
+            if (!catId) return subSelect.html('<option value="">Select Sub Category</option>');
+            const url = fetchSubcategoriesBase.replace('CATEGORY_ID', catId);
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    let opt = '<option value="">Select Sub Category</option>';
+                    data.forEach(sc => opt +=
+                        `<option value="${sc.iSubCategoryId}">${sc.strSubCategoryName}</option>`);
+                    subSelect.html(opt);
+                })
+                .catch(() => subSelect.html('<option value="">Select Sub Category</option>'));
+        });
+
+        // ===== Cascade subcategories (Add form) =====
+        $('#category_id').on('change', function() {
+            const catId = $(this).val();
+            $('#subcategory_id').html('<option value="">Loading...</option>');
+            if (!catId) return $('#subcategory_id').html('<option value="">Select Sub Category</option>');
+
+            const url = fetchSubcategoriesBase.replace('CATEGORY_ID', catId);
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    let options = '<option value="">Select Sub Category</option>';
+                    data.forEach(sc => options +=
+                        `<option value="${sc.iSubCategoryId}">${sc.strSubCategoryName}</option>`);
+                    $('#subcategory_id').html(options);
+                })
+                .catch(() => $('#subcategory_id').html('<option value="">Select Sub Category</option>'));
+        });
+
+        // ===== Bulk delete =====
         document.getElementById('bulkDeleteBtn').addEventListener('click', async function() {
-            const ids = getSelectedIds();
-            if (ids.length === 0) {
-                alert('Please select at least one video.');
-                return;
-            }
+            const ids = selectedIds();
+            if (ids.length === 0) return alert('Please select at least one video.');
             if (!confirm('Delete selected videos?')) return;
 
             try {
@@ -321,55 +377,32 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken(),
-                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({
                         ids
-                    }),
+                    })
                 });
 
                 const data = await res.json();
-                if (!res.ok || data.status !== 'ok') {
-                    throw new Error(data.message || 'Bulk delete failed');
-                }
-
-                // Remove rows from DOM
-                removeRowsByIds(data.deleted_ids || ids);
-            } catch (err) {
-                console.error(err);
+                if (!res.ok || data.status !== 'ok') throw new Error(data.message || 'Bulk delete failed');
+                removeRows(data.deleted_ids || ids);
+            } catch (e) {
+                console.error(e);
                 alert('Failed to delete selected videos. Please try again.');
             }
         });
 
-        // === Select all & sync ===
-        document.getElementById('selectAll').addEventListener('change', function() {
-            const checked = this.checked;
-            document.querySelectorAll('input.row-check').forEach(cb => cb.checked = checked);
+        // ===== Select all sync =====
+        $('#selectAll').on('change', function() {
+            $('.row-check').prop('checked', this.checked);
         });
 
-        document.addEventListener('change', function(e) {
-            if (e.target && e.target.classList.contains('row-check')) {
-                const total = document.querySelectorAll('input.row-check').length;
-                const sel = document.querySelectorAll('input.row-check:checked').length;
-                document.getElementById('selectAll').checked = (total > 0 && sel === total);
-            }
-        });
-
-        // === Cascade subcategories on Add form (unchanged) ===
-        $('#category_id').on('change', function() {
-            const catId = $(this).val();
-            $('#subcategory_id').html('<option value="">Loading...</option>');
-            if (!catId) return $('#subcategory_id').html('<option value="">Select Sub Category</option>');
-
-            fetch(`/admin/fetch-subcategories/${catId}`)
-                .then(res => res.json())
-                .then(data => {
-                    let options = '<option value="">Select Sub Category</option>';
-                    data.forEach(sc => options +=
-                        `<option value="${sc.iSubCategoryId}">${sc.strSubCategoryName}</option>`);
-                    $('#subcategory_id').html(options);
-                });
+        $(document).on('change', '.row-check', function() {
+            const total = $('.row-check').length;
+            const checked = $('.row-check:checked').length;
+            $('#selectAll').prop('checked', total > 0 && checked === total);
         });
     </script>
 @endsection

@@ -24,7 +24,7 @@
                         </a>
                     </li>
                     <li class="mb-2">
-                        <a href="#" class="footer-link">
+                        <a href="{{ route('front.services') }}#video" class="footer-link">
                             <i class="fas fa-angle-right me-2 text-accent-orange"></i> Services
                         </a>
                     </li>
@@ -41,22 +41,22 @@
                 <h5 class="text-uppercase text-white mb-3">Services</h5>
                 <ul class="list-unstyled">
                     <li class="mb-2">
-                        <a href="#" class="footer-link">
+                        <a href="{{ route('front.services') }}#video" class="footer-link">
                             <i class="fas fa-angle-right me-2 text-accent-orange"></i> Video Lecture
                         </a>
                     </li>
                     <li class="mb-2">
-                        <a href="#" class="footer-link">
+                        <a href="{{ route('front.services') }}#podcast" class="footer-link">
                             <i class="fas fa-angle-right me-2 text-accent-orange"></i> Podcast
                         </a>
                     </li>
                     <li class="mb-2">
-                        <a href="#" class="footer-link">
+                        <a href="{{ route('front.services') }}#research" class="footer-link">
                             <i class="fas fa-angle-right me-2 text-accent-orange"></i> Research Consultancy
                         </a>
                     </li>
                     <li class="mb-2">
-                        <a href="#" class="footer-link">
+                        <a href="{{ route('front.services') }}#community" class="footer-link">
                             <i class="fas fa-angle-right me-2 text-accent-orange"></i> Community Activities
                         </a>
                     </li>

@@ -42,17 +42,15 @@
                         <p class="text-center text-muted mb-5">Voices and stories from the world of public health and
                             community change.</p>
 
-                        <div class="row g-4 justify-content-center">
+                        <div class="row g-4 justify-content-center" id="podcastList">
 
                             @foreach ($podcast_episodes as $podcast_episode)
                                 <div class="col-md-4 resource-item" data-topic="policy community voices 2025">
                                     <div class="card shadow-sm rounded-3 border-0 p-3">
                                         <h6 class="fw-bold">{{ $podcast_episode->podcast_title }}</h6>
-                                        <p class="text-muted small">Guest: Dr. Meera Nair | Host: Dr. Rajesh Kumar</p>
+                                        {{--  <p class="text-muted small">Guest: Dr. Meera Nair | Host: Dr. Rajesh Kumar</p>  --}}
                                         <audio controls class="w-100 mt-2 custom-audio">
-                                            <source
-                                                src="https://transistor.nyc3.digitaloceanspaces.com/tracks/mystery-funk.mp3"
-                                                type="audio/mpeg">
+                                            <source src="{{ $podcast_episode->video_link }}" type="audio/mpeg">
                                         </audio>
                                     </div>
                                 </div>
@@ -61,9 +59,10 @@
                         </div>
 
 
-                        @if ($totalPodcast_episode > 1)
+                        @if ($totalPodcast_episode > count($podcast_episodes))
                             <div class="text-center mt-4">
-                                <button id="loadMoreBtn" class="btn custom-btn-red px-4 py-2" data-skip="1">
+                                <button id="loadMoreBtn" class="btn custom-btn-red px-4 py-2"
+                                    data-skip="{{ count($podcast_episodes) }}">
                                     <i class="fas fa-headphones me-2"></i>Listen More Episodes
                                 </button>
                             </div>
@@ -105,9 +104,9 @@
                             <div class="col-md-4 resource-item" data-aos="zoom-in" data-aos-delay="100">
                                 <div class="card shadow-sm rounded-3 border-0 p-3 h-100">
                                     <h6 class="fw-bold">${podcast.podcast_title}</h6>
-                                    <p class="text-muted small">
+                                    {{--  <p class="text-muted small">
                                         Guest: ${podcast.guest ?? 'Unknown'} | Host: ${podcast.host ?? 'Unknown'}
-                                    </p>
+                                    </p>  --}}
                                     <audio controls class="w-100 mt-2 custom-audio">
                                         <source src="${podcast.audio_link}" type="audio/mpeg">
                                         Your browser does not support the audio element.
@@ -122,7 +121,7 @@
                             $('#loadMoreBtn').data('skip', skip + response.podcasts.length);
                             btn.html(
                                 '<i class="fas fa-headphones me-2"></i>Listen More Episodes'
-                                ).prop('disabled', false);
+                            ).prop('disabled', false);
 
                             // Hide button if all are loaded
                             if ($('#podcastList .resource-item').length >=
