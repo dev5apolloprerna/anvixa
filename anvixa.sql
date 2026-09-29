@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 30, 2025 at 02:03 PM
+-- Generation Time: Sep 29, 2026 at 04:13 AM
 -- Server version: 8.0.31
 -- PHP Version: 8.1.13
 
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `category` (
   UNIQUE KEY `uniq_category_name` (`strCategoryName`),
   UNIQUE KEY `uniq_category_slug` (`strSlug`),
   UNIQUE KEY `category_strslug_unique` (`strSlug`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 ;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `category`
@@ -64,8 +64,8 @@ DROP TABLE IF EXISTS `document`;
 CREATE TABLE IF NOT EXISTS `document` (
   `document_id` int NOT NULL AUTO_INCREMENT,
   `title` varchar(200) NOT NULL,
-  `slug` varchar(200) CHARACTER SET utf8mb4 NOT NULL,
-  `document` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+  `slug` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `document` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `category_id` int NOT NULL,
   `subcategory_id` int NOT NULL,
   `iStatus` int NOT NULL DEFAULT '1',
@@ -73,16 +73,14 @@ CREATE TABLE IF NOT EXISTS `document` (
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`document_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 ;
+) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `document`
 --
 
 INSERT INTO `document` (`document_id`, `title`, `slug`, `document`, `category_id`, `subcategory_id`, `iStatus`, `isDelete`, `created_at`, `updated_at`) VALUES
-(1, 'kjglkjglkjgj', 'kjglkjglkjgj', 'galleries/QVPynoIe61TYgko9yamIgbUkWwvsLYeM9nxUK8Js.png', 2, 4, 1, 0, '2025-10-30 17:21:24', '2025-10-30 17:21:24'),
-(2, 'test document', 'test-document', 'uploads/documents/69036e808baae-ancd.pdf', 1, 5, 1, 0, '2025-10-30 17:41:50', '2025-10-30 19:26:16'),
-(3, 'ksjlkj', 'ksjlkj', 'uploads/documents/69036dfd5100d-ancd.pdf', 1, 5, 1, 0, '2025-10-30 19:24:05', '2025-10-30 19:24:05');
+(3, 'ksjlkj', 'ksjlkj', 'uploads/documents/69036dfd5100d-ancd.pdf', 1, 5, 1, 1, '2025-10-30 19:24:05', '2025-10-31 12:42:11');
 
 -- --------------------------------------------------------
 
@@ -94,7 +92,7 @@ DROP TABLE IF EXISTS `gallery`;
 CREATE TABLE IF NOT EXISTS `gallery` (
   `gallery_id` int NOT NULL AUTO_INCREMENT,
   `title` varchar(200) NOT NULL,
-  `slug` varchar(200) CHARACTER SET utf8mb4 NOT NULL,
+  `slug` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `image` varchar(100) NOT NULL,
   `category_id` int NOT NULL,
   `subcategory_id` int NOT NULL,
@@ -103,14 +101,16 @@ CREATE TABLE IF NOT EXISTS `gallery` (
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`gallery_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 ;
+) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `gallery`
 --
 
 INSERT INTO `gallery` (`gallery_id`, `title`, `slug`, `image`, `category_id`, `subcategory_id`, `iStatus`, `isDelete`, `created_at`, `updated_at`) VALUES
-(1, 'kjglkjglkjgj', 'kjglkjglkjgj', 'uploads/gallery/69036260a5511-image2.png', 2, 4, 1, 0, '2025-10-30 17:21:24', '2025-10-30 18:34:32');
+(3, 'euytutr', 'euytutr', 'uploads/gallery/69045ed2609c5-banner.png', 2, 4, 1, 0, '2025-10-31 12:31:19', '2025-10-31 12:31:38'),
+(2, 'slkjlgjklgk', 'slkjlgjklgk', 'uploads/gallery/69045e7761067-image1.png', 2, 4, 1, 1, '2025-10-31 12:30:07', '2025-10-31 12:30:48'),
+(1, 'skjlgkjgl', 'skjlgkjgl', 'uploads/gallery/69045e6b562a1-image2.png', 2, 4, 1, 1, '2025-10-31 12:29:55', '2025-10-31 12:30:13');
 
 -- --------------------------------------------------------
 
@@ -146,7 +146,7 @@ CREATE TABLE IF NOT EXISTS `podcast_episode` (
   `slug` varchar(200) NOT NULL,
   `category_id` int NOT NULL,
   `subcategory_id` int NOT NULL,
-  `podcast_title` varchar(200) CHARACTER SET utf8mb4 NOT NULL,
+  `podcast_title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `video_link` varchar(200) NOT NULL,
   `image` varchar(100) DEFAULT NULL,
   `iStatus` int NOT NULL DEFAULT '1',
@@ -154,16 +154,18 @@ CREATE TABLE IF NOT EXISTS `podcast_episode` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`podcast_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 ;
+) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `podcast_episode`
 --
 
 INSERT INTO `podcast_episode` (`podcast_id`, `slug`, `category_id`, `subcategory_id`, `podcast_title`, `video_link`, `image`, `iStatus`, `isDelete`, `created_at`, `updated_at`) VALUES
-(1, '', 4, 1, 'test master video', 'https://youtu.be/QN1ITp74Kkw?si=hpFxQn9aDU-0EfiG', NULL, 1, 0, '2025-10-30 15:53:25', '2025-10-30 15:53:25'),
-(2, 'test-podcast-video', 4, 1, 'test podcast video', 'https://youtu.be/E9SffEsFyaw?si=wc3f7B3ij8Ex-Iha', NULL, 1, 0, '2025-10-30 16:17:30', '2025-10-30 16:17:30'),
-(3, 'test-podcast-video-21', 4, 1, 'test podcast video 21', 'https://youtu.be/xeXV1KoX034?si=JQNjRKnKzKnWu1ci-kjafhkfhf', 'videos/jK8nsL1qhXUsU0F5ZKULx9elZpKl5VJxxcULLGV2.webp', 1, 0, '2025-10-30 16:34:14', '2025-10-30 16:37:44');
+(1, '', 4, 1, 'test master video', 'https://youtu.be/QN1ITp74Kkw?si=hpFxQn9aDU-0EfiG', 'uploads/podcasts/69045ab41bd1f-s.jpg', 1, 1, '2025-10-30 15:53:25', '2025-10-31 12:14:07'),
+(2, 'test-podcast-video', 4, 1, 'test podcast video', 'https://youtu.be/E9SffEsFyaw?si=wc3f7B3ij8Ex-Iha', 'uploads/podcast/69045a7963288-ghee500.webp', 1, 1, '2025-10-30 16:17:30', '2025-10-31 12:17:13'),
+(3, 'test-podcast-video-21', 3, 3, 'test podcast video 21', 'https://youtu.be/xeXV1KoX034?si=JQNjRKnKzKnWu1ci-kjafhkfhf', 'uploads/podcast/690459fc7249d-360-f-836184489-cfmhqdcljd7sbq6n2cssh8ui7snax1gp.jpg', 1, 1, '2025-10-30 16:34:14', '2025-10-31 12:17:26'),
+(4, 'test-podcast-video-1', 3, 3, 'test podcast video', 'https://youtu.be/xeXV1KoX034?si=JQNjRKnKzKnWu1ci', 'uploads/podcasts/69045c407080d-ghee500.jpeg', 1, 1, '2025-10-31 12:20:40', '2025-10-31 12:20:50'),
+(5, 'test-podcast-video-1', 4, 1, 'test podcast video', 'https://youtu.be/QN1ITp74Kkw?si=hpFxQn9aDU-0EfiG', 'uploads/podcasts/69045c53c4c58-image1.png', 1, 1, '2025-10-31 12:20:59', '2025-10-31 12:21:07');
 
 -- --------------------------------------------------------
 
@@ -296,7 +298,7 @@ CREATE TABLE IF NOT EXISTS `sub_category` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`iSubCategoryId`),
   KEY `fk_sub_category_category` (`iCategoryId`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 ;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `sub_category`
@@ -379,14 +381,18 @@ CREATE TABLE IF NOT EXISTS `video` (
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`video_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 ;
+) ENGINE=MyISAM AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dumping data for table `video`
 --
 
 INSERT INTO `video` (`video_id`, `category_id`, `subcategory_id`, `video_title`, `video_link`, `image`, `iStatus`, `isDelete`, `created_at`, `updated_at`) VALUES
-(1, 4, 1, 'test master video', 'https://youtu.be/QN1ITp74Kkw?si=hpFxQn9aDU-0EfiG', NULL, 1, 0, '2025-10-30 15:53:25', '2025-10-30 15:53:25');
+(1, 4, 1, 'test master video', 'https://youtu.be/QN1ITp74Kkw?si=hpFxQn9aDU-0EfiG', 'uploads/videos/690455b4cccb1-ghee500.webp', 1, 1, '2025-10-30 15:53:25', '2025-10-31 11:52:49'),
+(2, 4, 1, 'test image upload in video', 'https://youtu.be/E9SffEsFyaw?si=wc3f7B3ij8Ex-Iha-abcd', 'videos/rQcikrSCPVs6EAoKybitQJYFZ6GzT0E4n9eLasQa.jpg', 1, 1, '2025-10-31 11:33:24', '2025-10-31 11:42:02'),
+(3, 4, 1, 'test master video', 'https://youtu.be/E9SffEsFyaw?si=wc3f7B3ij8Ex-Iha abcd', 'uploads/videos/690452882f505-images-1.jpg', 1, 1, '2025-10-31 11:39:12', '2025-10-31 11:52:58'),
+(4, 3, 3, 'test master podcast', 'https://youtu.be/E9SffEsFyaw?si=wc3f7B3ij8Ex-Ihaklklk', 'uploads/videos/69045bde9af6a-ghee500.jpeg', 1, 0, '2025-10-31 12:19:02', '2025-10-31 12:19:02'),
+(5, 3, 2, 'test master podcast 2', 'https://youtu.be/QN1ITp74Kkw?si=hpFxQn9aDU-0EfiG', 'uploads/videos/69045bfda5819-organic-product-banner-design-circle-and-plants-background-6826497.jpg', 1, 0, '2025-10-31 12:19:33', '2025-10-31 12:19:33');
 
 --
 -- Constraints for dumped tables
