@@ -8,7 +8,7 @@
         name="description" />  --}}
     <meta content="Themesbrand" name="author" />
     <!-- App favicon -->
-    <link rel="shortcut icon" href="{{asset('assets/frontassets/image/logo/logo.png')}}">
+    <link rel="shortcut icon" href="{{ asset('assets/images/favicon.png') }}">
 
     <!-- Layout config Js -->
     <script src="{{ asset('assets/js/layout.js') }}"></script>
